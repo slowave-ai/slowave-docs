@@ -7,7 +7,7 @@
     "light": "#818CF8",
     "dark": "#4338CA"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/images/slowave-icon.jpeg",
   "navigation": {
     "pages": [
       {
@@ -90,5 +90,9 @@
       "type": "github",
       "href": "https://github.com/slowave-ai/slowave"
     }
+  },
+  "logo": {
+    "light": "/images/slowave-logo.jpeg",
+    "dark": "/images/slowave-logo.jpeg"
   }
 }
