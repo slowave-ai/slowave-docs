@@ -1,0 +1,120 @@
+---
+title: "slowave_activate: Prime Working Memory at Task Start"
+description: "Call slowave_activate at the start of every task to open a session, run spreading activation, and surface relevant memories and procedures for the scope."
+sidebarTitle: "activate"
+---
+
+`slowave_activate` is the entry point to every task in the Slowave cognitive cycle. It opens an implicit server-side session, runs spreading activation over your scoped memory store, and returns a compact working-memory set — directly relevant memories, execution-backed procedures, and structured warnings — along with the `session_id` and `retrieval_id` you will need for every subsequent call. You never need to call a separate session-start command.
+
+## Parameters
+
+<ParamField body="task" type="string" required>
+  The verbatim task description. Must be nonblank. Slowave uses this text as the primary retrieval cue; pass the full, unsummarized task so that spreading activation works against the actual problem.
+</ParamField>
+
+<ParamField body="initial_goal" type="string" required>
+  A concise, action-led provisional objective derived from the task. Must be nonblank. This is what the agent intends to accomplish, expressed as a brief verb phrase before full context is available.
+</ParamField>
+
+<ParamField body="scope" type="string" required>
+  Retrieval boundary in `kind:id` form (for example `project:my-repo`). Both the `kind` and `id` parts must be nonblank. All memory retrieval, session ownership, and feedback authorization are scoped to this value. See the [Overview](/mcp/overview#scope-format) for the scope contract.
+</ParamField>
+
+<ParamField body="continuity_id" type="string">
+  An opaque token that correlates multiple activations within the same client conversation. Omit this field on the first activation in a new conversation, then retain and resend the token returned in the response on all subsequent activations in that conversation. Never invent a value or reuse a token from a different conversation.
+</ParamField>
+
+<ParamField body="task_context" type="object">
+  Optional structured facts that condition retrieval — for example file paths, language, framework, or environment details relevant to this task. These facts become part of the retrieval cue and are persisted with the session for use by subsequent `slowave_recall` calls.
+</ParamField>
+
+## Response
+
+All responses are wrapped in `{"ok": true, "data": {...}}` on success or `{"ok": false, "error": {...}}` on failure.
+
+<ResponseField name="retrieval_id" type="string">
+  An opaque identifier for this activation's retrieval event. Pass this to `slowave_feedback` after using the returned memories and procedures.
+</ResponseField>
+
+<ResponseField name="session_id" type="string">
+  The server-side session identifier. Pass this to `slowave_remember`, `slowave_recall`, and `slowave_commit`.
+</ResponseField>
+
+<ResponseField name="memory_state" type="string">
+  Either `cold_start` or `available`.
+
+  - `cold_start` — the resolved scope has no memories yet. Read one stable context document, persist only durable facts not already observable in that document, then continue normally.
+  - `available` — the scope has existing memories and activation surfaced results.
+</ResponseField>
+
+<ResponseField name="memories" type="array">
+  The compact working-memory set for this task.
+
+  <Expandable title="memory object fields">
+    <ResponseField name="memory_id" type="string">
+      Stable `sch_N` identifier for this memory record. Use this in `slowave_feedback` to assess the memory.
+    </ResponseField>
+
+    <ResponseField name="content" type="string">
+      The memory text, capped at 500 characters.
+    </ResponseField>
+
+    <ResponseField name="pathway" type="string">
+      How this memory was surfaced: `direct` (query-relevant match), `associated` (graph-linked), or `context_reinstatement` (reinstated from a prior conversation in the same scope via continuity).
+    </ResponseField>
+
+    <ResponseField name="provenance" type="object">
+      Optional. Present when provenance metadata is available, such as `source_kind`, `integration`, `integration_version`, or `origin_scope` (when the memory originated in a different scope than the one requested).
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="procedures" type="array">
+  Execution-backed procedures relevant to the task. Each procedure includes a `procedure_id`, `goal`, `summary`, `outcome`, `outcome_summary`, and `caveats` (safety notes are never omitted). Pass `procedure_id` values to `slowave_feedback` to assess procedure usefulness.
+</ResponseField>
+
+<ResponseField name="warnings" type="array">
+  Structured safety warnings. A `scope_fragmentation` warning is included when the provided scope looks like a case or separator variant of an existing scope, indicating possible accidental memory split.
+</ResponseField>
+
+<ResponseField name="continuity_id" type="string">
+  Present when continuity is active. The server-issued token for this conversation thread. Retain this value and pass it back unchanged on the next `slowave_activate` call in the same conversation.
+</ResponseField>
+
+<ResponseField name="continuity_state" type="string">
+  Present when `continuity_id` is returned. Either `started` (this is the first activation in a new conversation thread) or `continued` (this activation is continuing an existing thread). On `started`, Slowave may add context reinstatement memories to help bridge the new task with recent work.
+</ResponseField>
+
+<ResponseField name="more_available" type="boolean">
+  Present when continuity is active. `true` when memories or procedures were omitted from the response to stay within the budget. Use `slowave_recall` to fetch additional context.
+</ResponseField>
+
+## When to call activate
+
+Call `slowave_activate` exactly once at the beginning of every task, before any other Slowave tool. Never call it mid-task or after recalling additional context — that is the job of `slowave_recall`.
+
+```json
+{
+  "task": "Fix the race condition in the session reaper that causes double-close errors",
+  "initial_goal": "Eliminate the double-close race in the session reaper",
+  "scope": "project:my-repo"
+}
+```
+
+## Cold start behavior
+
+When `memory_state` is `cold_start`, the scope has no stored memories. The recommended pattern is:
+
+1. Read one stable context document (for example, a project README or architecture note).
+2. Use `slowave_remember` to persist only durable facts that are not already observable from the document on every task.
+3. Continue the task normally.
+
+Do not attempt to pre-populate memory with a full document dump. Store only claims that would be genuinely useful to recall in a future session.
+
+## Scope validation
+
+The scope must be in `kind:id` form with nonblank values on both sides of the colon. An invalid scope returns `{"ok": false, "error": {"code": "invalid_input", ...}}` immediately without opening a session.
+
+<Note>
+  If activate returns a `scope_fragmentation` warning in the `warnings` array, confirm with the user whether the scope string is correct before proceeding. Two slightly different scope strings — `project:my-repo` versus `project:my_repo` — create completely isolated memory stores with no cross-visibility.
+</Note>

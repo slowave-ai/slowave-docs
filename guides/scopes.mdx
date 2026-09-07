@@ -1,0 +1,111 @@
+---
+title: "Scoping memory to projects, domains, and workflows"
+description: "How scopes isolate memory by context, when generalized schemas cross scope boundaries, and best practices for naming and managing your scope strategy."
+sidebarTitle: "Scopes"
+---
+
+Every memory in Slowave belongs to a scope. Scopes are the primary boundary that keeps a project's decisions from leaking into a completely unrelated domain, and they let the same memory substrate serve dozens of different contexts without confusion. Getting scope naming right from the start means retrieval stays accurate and generalization happens where it should.
+
+## What a scope is
+
+A scope is a string in `kind:id` form — two parts separated by a colon. The `kind` describes the category of context; the `id` names the specific instance within that category.
+
+```text
+project:my-api          # a specific code repository
+domain:cooking          # a subject-matter domain
+workflow:monthly-report # a recurring workflow
+relationship:alex       # a person or client relationship
+```
+
+All five MCP lifecycle verbs (`slowave_activate`, `slowave_remember`, `slowave_recall`, `slowave_feedback`, `slowave_commit`) require a scope, and `remember` and `recall` must use the same scope as the active session opened by `activate`. The scope is validated: both parts must be non-blank.
+
+<Note>
+  Scopes are not an authorization system. They reduce accidental context leakage during ordinary work, but they do not enforce hard access control. For hard isolation between sensitive projects, users, or tenants, use separate Slowave database files.
+</Note>
+
+## Why scopes exist
+
+Without scopes, every memory competes for retrieval priority regardless of context. A decision recorded during a client engagement would surface during a personal project; a constraint from one codebase would show up for a completely different stack. Scopes solve this by making the retrieval boundary explicit.
+
+When an agent calls `slowave_activate` with `scope: "project:my-api"`, the default `strict_scope` retrieval mode returns only memories that originated in — or have generalized to cover — that scope. Memories from `project:another-repo` stay out of the result unless they have earned cross-scope visibility through the generalization ladder.
+
+<Tip>
+  For coding agents, Slowave resolves the scope automatically from the Git repository root when a workspace root is available, emitting `project:<root-name>`. Non-Git directories fall back to the current directory name with a warning.
+</Tip>
+
+## Choosing scope names
+
+A good scope name is stable, specific, and consistent across all the sessions that belong to it. Changing a scope name mid-project creates a new, empty scope and leaves the old memories stranded.
+
+<CardGroup cols={2}>
+  <Card title="Be consistent" icon="check">
+    Use the same string every time for the same context. `project:slowave` and `project:Slowave` are different scopes — pick one and stick with it.
+  </Card>
+
+  <Card title="Be specific" icon="crosshairs">
+    Prefer `project:my-api` over `project:work`. The more specific the scope, the less noise you pull in on unrelated tasks.
+  </Card>
+
+  <Card title="Match the kind to reality" icon="tag">
+    Use `project:` for repositories, `domain:` for subject areas, `workflow:` for recurring processes. Consistent kinds enable kind-level generalization.
+  </Card>
+
+  <Card title="Avoid generic ids" icon="x">
+    Avoid `project:main`, `domain:general`, or `workflow:misc`. These will accumulate unrelated memories quickly and make retrieval noisy.
+  </Card>
+</CardGroup>
+
+## Generalization stages
+
+Memories start life confined to the scope they were recorded in. As they accumulate evidence across multiple distinct scopes and sessions, they can earn broader visibility through four generalization stages.
+
+| Stage | Visibility |
+| --- | --- |
+| Scoped | Origin scope only. |
+| Portable | Related scopes of the same kind. |
+| Contextual | Other scopes with a retrieval penalty. |
+| Global | Broad visibility after strong cross-scope evidence. |
+
+This mechanism is designed for knowledge that genuinely applies everywhere — a universal architectural principle, a recurring team convention, or a workflow step that works regardless of project. It is not the right path for project-specific decisions.
+
+<Accordion title="How does a memory earn a higher generalization stage?">
+  A memory is promoted when consolidation observes it being recalled and assessed as useful across a sufficient number of distinct scopes and sessions. The promotion ladder is deterministic and local — no LLM is involved. You can inspect a memory's current stage in the dashboard under Memory → schema detail, or via `slowave show sch_N`.
+</Accordion>
+
+## Strict scope vs broad retrieval
+
+The default MCP retrieval mode is `strict_scope`. This mode returns only memories that belong to the requested scope or have generalized to cover it. It is the correct mode for normal agent work.
+
+The CLI also supports `broad`, `default`, and `debug` retrieval modes for manual inspection and experimentation. These are not part of the MCP contract and should not be used in agent integrations.
+
+```bash
+# Strict scope (default for MCP and CLI)
+slowave --json activate \
+  --query "fix the session reaper race condition" \
+  --scope "project:my-repo" \
+  --mode strict_scope
+```
+
+## Scope fragmentation warning
+
+If activation returns a `scope_fragmentation` warning, it means memories relevant to the current task were recorded under a different scope string. This typically happens when a scope name changes mid-project (for example, renaming a repository), when a coding agent resolves the scope differently from its normal working directory, or when two team members use slightly different naming conventions.
+
+<Warning>
+  A `scope_fragmentation` warning in the `warnings` array of the activation response means some relevant memory may not be reaching the agent. Inspect the suggested scope and consider whether memories need to be migrated to a consistent name.
+</Warning>
+
+## Separate databases for hard isolation
+
+Scope boundaries are a convenience, not a security boundary. If two projects, users, or tenants must never share memory under any circumstance, run them against separate Slowave database files.
+
+```bash
+# Point to a different database with SLOWAVE_DB
+SLOWAVE_DB=/path/to/project-b.db slowave activate ...
+
+# Or use SLOWAVE_HOME to isolate the entire runtime tree
+SLOWAVE_HOME=/path/to/project-b-home slowave activate ...
+```
+
+<Note>
+  Both `SLOWAVE_HOME` and `SLOWAVE_DB` can be used to isolate tenants or sensitive projects. Do not set both at the same time. All Slowave databases are plaintext by default — protect them with filesystem permissions or an encrypted volume.
+</Note>

@@ -1,0 +1,261 @@
+---
+title: "slowave_commit: Close the Task and Persist Outcomes"
+description: "Call slowave_commit at task end to record the outcome and verification, optionally capture a reusable procedure, and trigger offline memory consolidation."
+sidebarTitle: "commit"
+---
+
+`slowave_commit` closes the current task session, records the verified outcome, and triggers offline memory consolidation. It is the final step of the Slowave cognitive cycle. Every task that begins with `slowave_activate` should end with `slowave_commit`. If the commit is skipped, the idle-session reaper will eventually close the session, but without the outcome metadata, feedback enforcement, or procedure capture that commit provides.
+
+## Parameters
+
+<ParamField body="session_id" type="string" required>
+  The active session identifier returned by `slowave_activate`. The session must exist and must not already be ended.
+</ParamField>
+
+<ParamField body="final_goal" type="string" required>
+  The confirmed goal for the task, as understood after completing the work. This may refine the `initial_goal` provided at activation if the task evolved. Must be nonblank.
+</ParamField>
+
+<ParamField body="outcome" type="string" required>
+  The result of the task. Must be one of:
+
+  - `success` — the task was completed as intended.
+  - `partial` — the task was partially completed or the result is incomplete.
+  - `failure` — the task was not completed or ended in an error.
+</ParamField>
+
+<ParamField body="outcome_summary" type="string" required>
+  A standalone, human-readable description of what actually happened. Write this as a self-contained sentence that is meaningful without other context — it will be surfaced in future memory retrievals. Must be nonblank.
+</ParamField>
+
+<ParamField body="verification" type="object" required>
+  A structured record of how the outcome was verified.
+
+  <Expandable title="verification object fields">
+    <ParamField body="status" type="string" required>
+      The verification result. Must be one of:
+
+      - `verified` — the outcome was confirmed through direct observation or testing.
+      - `partially_verified` — the outcome was partially confirmed.
+      - `unverified` — no verification was performed or possible.
+    </ParamField>
+
+    <ParamField body="summary" type="string" required>
+      A concise description of what verification was done and what it showed. Must be nonblank.
+    </ParamField>
+
+    <ParamField body="evidence_refs" type="array">
+      Optional list of evidence references supporting the verification claim — for example test run IDs, CI build URLs, or log file references.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="procedure" type="object">
+  An optional record of the reusable method that was applied during the task. Include a procedure when the task followed a clear, repeatable sequence of steps that would be useful to a future agent working on a similar problem in the same scope.
+
+  <Expandable title="procedure object fields">
+    <ParamField body="goal" type="string">
+      The objective this procedure accomplishes.
+    </ParamField>
+
+    <ParamField body="summary" type="string">
+      A concise description of the approach.
+    </ParamField>
+
+    <ParamField body="context" type="object">
+      Structured context that defines when this procedure applies — for example, environment, language, framework, or tool versions.
+    </ParamField>
+
+    <ParamField body="steps" type="array">
+      An ordered list of the steps that were executed.
+    </ParamField>
+
+    <ParamField body="caveats" type="array">
+      Safety notes, known failure modes, or conditions under which the procedure should not be used.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="trajectory" type="array">
+  An optional executed-attempt trace of the task. Limited to at most 32 entries. Each entry describes one step of what the agent did, not the Slowave lifecycle itself.
+
+  <Expandable title="trajectory entry fields">
+    <ParamField body="kind" type="string" required>
+      Either `action` (something the agent did) or `observation` (something the agent observed as a result).
+    </ParamField>
+
+    <ParamField body="summary" type="string" required>
+      A nonblank description of the action or observation, at most 1000 characters.
+    </ParamField>
+
+    <ParamField body="status" type="string">
+      The outcome of this step: `started`, `succeeded`, `failed`, or `unknown`. Defaults to `unknown`.
+    </ParamField>
+  </Expandable>
+
+  <Warning>
+    Do **not** include Slowave lifecycle calls in the trajectory — entries like "Activated the Slowave session", "Called slowave_recall", or "Committed the session" will be silently filtered out by the server. The trajectory is a narration of your **task** actions and observations only. If the server filtered entries, the response will include a `trajectory_lifecycle_filtered` count.
+  </Warning>
+</ParamField>
+
+## Response
+
+<ResponseField name="session_id" type="string">
+  The session identifier that was closed, echoed back for confirmation.
+</ResponseField>
+
+<ResponseField name="episodes_formed" type="integer">
+  The number of episodic memories created from this session's activity during consolidation.
+</ResponseField>
+
+<ResponseField name="feedback_status" type="string">
+  `complete` for a normal closure where all required feedback was present.
+</ResponseField>
+
+<ResponseField name="committed" type="boolean">
+  `true` when the session was successfully closed.
+</ResponseField>
+
+<ResponseField name="outcome" type="string">
+  The recorded outcome, echoed back.
+</ResponseField>
+
+<ResponseField name="verification_status" type="string">
+  The recorded verification status, echoed back.
+</ResponseField>
+
+<ResponseField name="operation" type="string">
+  `closed` when the session was freshly committed; `updated` when commit was called on an already-ended session.
+</ResponseField>
+
+<ResponseField name="trajectory_lifecycle_filtered" type="integer">
+  Present only when trajectory entries were removed because they described Slowave lifecycle operations. Indicates how many entries were filtered. If this field appears, review your trajectory construction to exclude Slowave tool calls.
+</ResponseField>
+
+<ResponseField name="session_note" type="string">
+  Informational only. Present when the session had several tool-use events but zero `slowave_recall` calls, as a reminder that deliberate mid-task recall is available.
+</ResponseField>
+
+## Incomplete feedback error
+
+If any `retrieval_id` from an activation or recall during this session has not been fully covered by feedback, `slowave_commit` returns a **retryable** error:
+
+```json
+{
+  "ok": false,
+  "error": {
+    "code": "incomplete_feedback",
+    "message": "feedback is incomplete",
+    "retryable": true,
+    "outstanding": [
+      {
+        "retrieval_id": "ctx_a1b2c3d4e5f6",
+        "memory_ids": ["sch_42", "sch_17"],
+        "procedure_ids": []
+      }
+    ]
+  }
+}
+```
+
+The `outstanding` array lists every retrieval event and the specific memory and procedure IDs that still need assessment. Submit `slowave_feedback` for each entry in `outstanding`, then retry the commit.
+
+## When to include a procedure
+
+Include the `procedure` field when:
+
+- The task followed a clear sequence of steps that solved a well-defined problem.
+- The method is likely to apply in a future session on the same or a related task.
+- The steps are repeatable and can be described without relying on task-specific ephemera.
+
+Omit the `procedure` field when:
+
+- The task was a one-off that required unique judgment calls.
+- The steps are too specific to this exact situation to generalize.
+- The task failed and no reusable method emerged.
+
+<Note>
+  A procedure captured in `slowave_commit` is stored as an execution-backed record tied to the session's outcome and verification. Failed attempts are stored too when a procedure is supplied — they appear as warnings when the procedure is retrieved in a future task. Only include a procedure when you genuinely followed the steps; do not reconstruct them post-hoc.
+</Note>
+
+## Idle-session fallback
+
+If `slowave_commit` is never called, the **idle-session reaper** closes the session after `SLOWAVE_SESSION_IDLE_TIMEOUT` seconds (default 3600). Sessions closed by the reaper:
+
+- Do not enforce feedback completeness.
+- Do not capture a final goal, outcome summary, verification, or procedure.
+- Do not trigger the same consolidation quality as an explicit commit.
+
+Always prefer an explicit `slowave_commit` call over relying on the reaper.
+
+## Examples
+
+<CodeGroup>
+
+```json Successful task with verification
+{
+  "session_id": "sess_abc123",
+  "final_goal": "Fix the double-close race in the session reaper",
+  "outcome": "success",
+  "outcome_summary": "Added a threading lock around the reaper's close logic; the race no longer reproduces under 100-thread stress testing.",
+  "verification": {
+    "status": "verified",
+    "summary": "Full integration test suite passed. Ran the stress test 3 times with 100 concurrent threads — zero double-close errors."
+  }
+}
+```
+
+```json With procedure
+{
+  "session_id": "sess_abc123",
+  "final_goal": "Deploy the new auth service to staging",
+  "outcome": "success",
+  "outcome_summary": "Auth service v2.3.1 deployed to staging and health checks passing.",
+  "verification": {
+    "status": "verified",
+    "summary": "Checked /health endpoint returned 200. Smoke-tested login flow with a test account."
+  },
+  "procedure": {
+    "goal": "Deploy a new service version to the staging environment",
+    "summary": "Build the Docker image, push to the registry, update the Helm chart version, and run the staging deploy workflow.",
+    "context": {
+      "environment": "staging",
+      "infra": "Kubernetes",
+      "ci": "GitHub Actions"
+    },
+    "steps": [
+      "Run `docker build -t registry.example.com/auth-service:<version> .` from the repo root.",
+      "Push with `docker push registry.example.com/auth-service:<version>`.",
+      "Update `helm/auth-service/values-staging.yaml` with the new image tag.",
+      "Trigger the `deploy-staging` GitHub Actions workflow.",
+      "Verify the rollout with `kubectl rollout status deployment/auth-service -n staging`."
+    ],
+    "caveats": [
+      "The staging namespace requires manual approval in GitHub Actions for image tags that are not semver.",
+      "Health check takes up to 90 seconds after pod restart; do not declare failure earlier."
+    ]
+  }
+}
+```
+
+```json With trajectory
+{
+  "session_id": "sess_abc123",
+  "final_goal": "Identify why the nightly build is failing",
+  "outcome": "partial",
+  "outcome_summary": "Traced the failure to a missing environment variable in the CI config; fix is proposed but not yet merged.",
+  "verification": {
+    "status": "partially_verified",
+    "summary": "Reproduced the failure locally by unsetting the variable. PR opened but not yet merged or CI-verified."
+  },
+  "trajectory": [
+    {"kind": "action", "summary": "Reviewed the nightly build log for the past 7 days.", "status": "succeeded"},
+    {"kind": "observation", "summary": "Failures started on 2026-08-20, correlating with a config change PR.", "status": "succeeded"},
+    {"kind": "action", "summary": "Diffed the config change PR against the prior working config.", "status": "succeeded"},
+    {"kind": "observation", "summary": "Found that SERVICE_TOKEN was removed from the CI environment variable list.", "status": "succeeded"},
+    {"kind": "action", "summary": "Opened PR #1042 to restore SERVICE_TOKEN in the CI config.", "status": "succeeded"}
+  ]
+}
+```
+
+</CodeGroup>

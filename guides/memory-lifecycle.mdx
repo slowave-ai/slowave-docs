@@ -1,0 +1,112 @@
+---
+title: "From agent sessions to durable memory: the full lifecycle"
+description: "How raw session events become episodes, prototypes, and durable schemas — and how feedback, salience, and decay keep memory honest over time."
+sidebarTitle: "Memory Lifecycle"
+---
+
+Every piece of durable memory in Slowave starts as a raw event. When an agent activates a session, works through a task, and commits an outcome, that activity is recorded, encoded, and consolidated into progressively more stable structures — without a single LLM call in the pipeline. Understanding this path helps you write better claims, interpret what activation returns, and know when to act on stale feedback.
+
+## The path from activity to durable memory
+
+Session activity flows through three layers before it surfaces in retrieval: raw events are encoded into episodes, episodes are clustered into prototypes, and prototypes anchor the searchable schema records that agents actually read.
+
+```text
+Agent task
+  └─ Raw events (append-only log)
+       └─ Episodes (encoded, scoped, salience-scored)
+            └─ Prototypes (clustered representations)
+                 └─ Schemas (durable, searchable memory records)
+```
+
+Consolidation is a background process. Slowave never blocks an agent waiting for replay or clustering — the background worker (or `slowave consolidate`) runs independently.
+
+<Note>
+  Slowave uses local embeddings and deterministic operations throughout this path. No language model is involved in consolidation, reinforcement, decay, or retrieval.
+</Note>
+
+## The five-verb cognitive cycle
+
+Every agent task follows the same five steps. Each verb has a specific role; using them in order is what makes memory trustworthy.
+
+<Steps>
+  <Step title="slowave_activate">
+    Opens a task session and primes working memory. Pass the verbatim `task`, a concise `initial_goal`, and a `scope` in `kind:id` form. Returns a `session_id`, a `retrieval_id` for later feedback, and a compact set of relevant memories and procedures scoped to the current context.
+  </Step>
+  <Step title="slowave_remember">
+    Stores a durable, standalone typed claim while the session is open. Use this only for knowledge that should persist across sessions — project decisions, user preferences, lessons learned. Do not store transient work state here.
+  </Step>
+  <Step title="slowave_recall">
+    Performs a deliberate semantic lookup mid-task when the question shifts or activation did not surface enough context. Bound to the active session and scope. Returns direct and associated memories plus bounded provenance references.
+  </Step>
+  <Step title="slowave_feedback">
+    Records append-only assessments of every retrieved memory and procedure. Memory assessments are `used`, `irrelevant`, or `stale`. Procedure feedback records both `use` (`used` or `not_used`) and `effect` (`helped`, `no_effect`, `harmed`, or `unknown`) separately. Commit will be rejected until all exposed targets have feedback.
+  </Step>
+  <Step title="slowave_commit">
+    Closes the task with its `final_goal`, `outcome` (`success`, `partial`, or `failure`), `outcome_summary`, and `verification`. Optionally captures a reusable `procedure`. Triggers offline episode formation.
+  </Step>
+</Steps>
+
+<Warning>
+  `slowave_commit` runs a preflight check and returns a retryable `incomplete_feedback` error if any exposed retrieval target is missing feedback. Complete all feedback before calling commit.
+</Warning>
+
+## Memory types
+
+The `slowave_remember` tool accepts ten distinct memory types. Choose the type that most precisely describes the claim — it affects how the memory is tagged, layered, and later surfaced.
+
+| Type | When to use |
+| --- | --- |
+| `fact` | Objective, verifiable information about the world or a project. |
+| `preference` | A user or team preference about tools, style, or approach. |
+| `decision` | A choice that was made and should not be revisited without reason. |
+| `constraint` | A hard boundary or requirement that must not be violated. |
+| `instruction` | A reusable direction the agent should follow in relevant contexts. |
+| `lesson` | Something learned from an outcome, success, or failure. |
+| `warning` | A risk or pitfall worth surfacing proactively in future tasks. |
+| `open_question` | An unresolved question worth tracking for a later session. |
+| `task` | A durable, long-running task or commitment. |
+| `artifact` | A reference to an important output, file, or resource. |
+
+<Tip>
+  Use `instruction` for directions like "always run tests before pushing." Use `constraint` for non-negotiable hard limits. Use `lesson` for retrospective insight from a completed task.
+</Tip>
+
+## Memory lifecycle states
+
+A schema (the durable memory record) moves through three visible states. Only active memory participates in normal retrieval.
+
+| State | Meaning | How it is reached |
+| --- | --- | --- |
+| `active` | Participates fully in retrieval and ranking. | Default state when a schema is created or reinforced. |
+| `stale` | Retrieval is possible but penalized; signals the claim may be outdated. | Client feedback marks the memory stale with a reason and optional superseding replacement. |
+| `suppressed` | Excluded from retrieval entirely. | A person explicitly suppresses the memory via the CLI (`slowave forget`) or dashboard. Reversible with `slowave unforget` or the dashboard Unforget button. |
+
+<Note>
+  There is intentionally no agent-facing forget tool. Suppression is a human decision made after inspecting a specific memory — not something an agent infers from conversation text.
+</Note>
+
+## How feedback shapes salience and decay
+
+Feedback is the primary signal that keeps memory honest over time. When an agent marks a memory `used`, its salience is reinforced and it becomes more likely to surface in future activations. When a memory is marked `stale`, the reason is recorded — it can be `contradicted`, `superseded`, `outdated`, `unsupported`, or `withdrawn` — and a superseded assessment must also name the active replacement.
+
+Schemas that are never recalled gradually lose salience through idle decay. The `slowave worker` background loop runs `decay_unused` on a schedule, lowering salience for schemas that have not been retrieved within a configurable idle window (default 30 days). This allows stale context to fade without requiring explicit human action on every old memory.
+
+<Accordion title="What happens when a memory is marked stale?">
+  A stale assessment records the reason and, when `superseded`, the `replacement_memory_id` of the newer claim. The original schema remains in the database with its source evidence intact. It can still be inspected via the dashboard or `slowave show sch_N`, and a suppression can be reversed. The assessment is append-only: subsequent positive feedback on the same memory can raise its salience again.
+</Accordion>
+
+## Background consolidation
+
+Slowave separates the agent's interactive task loop from the consolidation process entirely. When `slowave_commit` closes a session, it triggers episode formation synchronously — but replay, prototype clustering, and schema reinforcement run in the background.
+
+<CardGroup cols={2}>
+  <Card title="slowave worker" icon="gear">
+    Runs the background consolidation loop. Omit `--once` to keep it running; use `--once` for a single pass in scripts or tests.
+  </Card>
+
+  <Card title="slowave consolidate" icon="bolt">
+    Runs one replay and latent-consolidation pass immediately. Useful for one-off maintenance or forcing consolidation before inspecting results.
+  </Card>
+</CardGroup>
+
+The worker processes eligible episodes into prototypes, updates association edges in the graph, and writes or reinforces schema records — all through local, deterministic operations with no LLM calls and no external network dependency.

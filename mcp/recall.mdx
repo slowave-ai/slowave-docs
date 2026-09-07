@@ -1,0 +1,199 @@
+---
+title: "slowave_recall: Semantic Mid-Task Memory Retrieval"
+description: "Use slowave_recall for deliberate mid-task lookups when the task evolves and activation alone did not surface the historical context you need."
+sidebarTitle: "recall"
+---
+
+`slowave_recall` is the mid-task counterpart to `slowave_activate`. Where activation primes working memory at the start of a task, recall gives you an on-demand semantic lookup when the question shifts, a new sub-problem arises, or you need specific historical context that was not included in the activation response. Every recall call is tied to your active session and scope, and returns its own `retrieval_id` that must be covered by feedback before the session can be committed.
+
+## When to use recall vs activate
+
+Use `slowave_recall` when:
+
+- The task has evolved and you now need context that wasn't covered by the original activation query.
+- A sub-problem requires a focused search on a specific topic.
+- Activate returned `more_available: true` and you need the remaining context.
+
+Do not call `slowave_recall` as a substitute for `slowave_activate`. Activate opens the session, enforces the continuity contract, and sets up the feedback ledger. Recall assumes that activation has already happened.
+
+## Parameters
+
+<ParamField body="query" type="string" required>
+  A natural-language question or description of the context you are looking for. Must be nonblank. Make it specific to the current sub-problem — the more focused the query, the more useful the retrieval results.
+</ParamField>
+
+<ParamField body="session_id" type="string" required>
+  The active session identifier returned by `slowave_activate`. The session must be open and must not have been ended. Its scope must match the `scope` parameter.
+</ParamField>
+
+<ParamField body="scope" type="string" required>
+  The retrieval boundary in `kind:id` form. Must match the scope of the active session. All memory retrieval is scoped to this value.
+</ParamField>
+
+<ParamField body="task_context" type="object">
+  Optional structured facts describing the current sub-question or evolving task state. When provided, these facts are merged into the session's task context and used as additional retrieval cues for this call and subsequent ones.
+</ParamField>
+
+<ParamField body="evidence" type="string">
+  Controls how much raw source material is included in the response. Accepted values:
+
+  - `references` (default) — returns metadata for each evidence record (source kind, timestamps, source ref) without the full text content. Lower token cost; use when you only need to know what evidence exists.
+  - `full` — additionally includes the bounded source text for each evidence record, capped at 1000 characters per record. Use when you need to inspect the actual raw material that underpins a memory.
+
+  The number of evidence records returned is always bounded by a server-owned limit regardless of mode.
+</ParamField>
+
+## Response
+
+<ResponseField name="retrieval_id" type="string">
+  An opaque identifier for this recall event. Pass this to `slowave_feedback` after you have used (or decided not to use) the returned memories and procedures. Every recall's `retrieval_id` must be covered by feedback before `slowave_commit` will succeed.
+</ResponseField>
+
+<ResponseField name="memories" type="array">
+  Relevant memories for the query.
+
+  <Expandable title="memory object fields">
+    <ResponseField name="memory_id" type="string">
+      Stable `sch_N` identifier. Use this in `slowave_feedback` to record an assessment.
+    </ResponseField>
+
+    <ResponseField name="content" type="string">
+      The memory text, capped at 500 characters.
+    </ResponseField>
+
+    <ResponseField name="pathway" type="string">
+      Either `direct` (query-matched) or `associated` (surfaced via graph relations from a direct match). Associated memories are not counted toward the primary result budget.
+    </ResponseField>
+
+    <ResponseField name="provenance" type="object">
+      Optional. When present, contains `source_kind`, `integration`, `integration_version`, and `origin_scope` (when the memory originated in a different scope).
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="procedures" type="array">
+  Execution-backed procedures matching the recall query. Each entry includes `procedure_id`, `goal`, `summary`, `context`, `steps`, `caveats`, `outcome`, `outcome_summary`, `evidence` (use/effect tallies), and `contributions` (the three most recent observed outcomes).
+
+  <Expandable title="procedure object fields">
+    <ResponseField name="procedure_id" type="string">
+      Stable identifier for the procedure. Use in `slowave_feedback` to record whether the procedure was used and whether it helped.
+    </ResponseField>
+
+    <ResponseField name="goal" type="string">
+      The objective this procedure was designed to accomplish.
+    </ResponseField>
+
+    <ResponseField name="summary" type="string">
+      A concise description of the method.
+    </ResponseField>
+
+    <ResponseField name="context" type="object">
+      Structured context (environment, tooling, language, etc.) that determines when the procedure applies.
+    </ResponseField>
+
+    <ResponseField name="steps" type="array">
+      Ordered list of steps. A procedure is evidence from past work, not a mandatory instruction.
+    </ResponseField>
+
+    <ResponseField name="caveats" type="array">
+      Safety notes and known failure modes. Caveats are never silently omitted.
+    </ResponseField>
+
+    <ResponseField name="outcome" type="string">
+      The most recent outcome when this procedure was last used: `success`, `partial`, `failure`, or `unknown`.
+    </ResponseField>
+
+    <ResponseField name="outcome_summary" type="string">
+      A human-readable description of what happened the last time this procedure was applied.
+    </ResponseField>
+
+    <ResponseField name="evidence" type="object">
+      Tallies of observed use and effect signals accumulated from past feedback: `used`, `not_used`, `helped`, `no_effect`, `harmed`, `unknown`.
+    </ResponseField>
+
+    <ResponseField name="contributions" type="array">
+      The three most recent observed contribution records, each with `effect`, `contribution`, `outcome`, `outcome_summary`, and `occurred_at`.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="evidence" type="array">
+  Bounded raw source records underlying the memories. Always present; content fields only populated in `full` mode.
+
+  <Expandable title="evidence record fields">
+    <ResponseField name="evidence_id" type="string">
+      Prefixed identifier: `ep_N` for episode records, `evt_N` for raw event records.
+    </ResponseField>
+
+    <ResponseField name="source_kind" type="string">
+      Either `episode` or `event`.
+    </ResponseField>
+
+    <ResponseField name="recorded_at" type="integer">
+      Unix timestamp of when the record was written to storage.
+    </ResponseField>
+
+    <ResponseField name="occurred_at" type="integer">
+      Unix timestamp of the source event time. May differ from `recorded_at` when `occurred_at` was supplied at remember time.
+    </ResponseField>
+
+    <ResponseField name="source_ref" type="object">
+      A stable reference to the underlying record: `{"kind": "episode"|"event", "id": N}`.
+    </ResponseField>
+
+    <ResponseField name="content" type="string">
+      Only present in `full` mode. The source text, capped at 1000 characters.
+    </ResponseField>
+
+    <ResponseField name="truncated" type="boolean">
+      Only present in `full` mode. `true` when the source text exceeded 1000 characters and was cut.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+<ResponseField name="evidence_mode" type="string">
+  Echoes back the `evidence` parameter value used for this call: `references` or `full`.
+</ResponseField>
+
+<ResponseField name="evidence_truncated" type="boolean">
+  `true` when there are more raw source records than the server-owned evidence limit allows. Only the first bounded set of records is returned.
+</ResponseField>
+
+## Examples
+
+<CodeGroup>
+
+```json References mode (default)
+{
+  "query": "What database migration strategy does this project use?",
+  "session_id": "sess_abc123",
+  "scope": "project:my-repo"
+}
+```
+
+```json Full evidence mode
+{
+  "query": "Previous attempts to fix the session reaper race condition",
+  "session_id": "sess_abc123",
+  "scope": "project:my-repo",
+  "evidence": "full"
+}
+```
+
+```json With task_context update
+{
+  "query": "Authentication flow for the mobile clients",
+  "session_id": "sess_abc123",
+  "scope": "project:my-repo",
+  "task_context": {
+    "platform": "iOS",
+    "auth_provider": "Auth0"
+  }
+}
+```
+
+</CodeGroup>
+
+<Warning>
+  Every `retrieval_id` returned by `slowave_recall` must be covered by a `slowave_feedback` call before `slowave_commit` will succeed. If you issue multiple recall calls during a task, keep track of each `retrieval_id` and submit feedback for all of them.
+</Warning>

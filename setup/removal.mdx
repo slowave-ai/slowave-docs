@@ -1,0 +1,120 @@
+---
+title: "Uninstall, purge, or remove the Slowave package fully"
+description: "Remove Slowave integrations while keeping your memories, wipe all local data, or uninstall the package entirely — with dry-run support at every step."
+sidebarTitle: "Removal"
+---
+
+Slowave gives you three distinct removal operations so you can choose exactly what to remove. `slowave uninstall` strips the client integrations and services but preserves your local memories. `slowave purge` goes further and removes the database too. Finally, uninstalling the package with `pipx` or Homebrew removes the binaries. Always run `--dry-run` first to confirm what each command will do before writing any changes.
+
+<Warning>
+  `slowave purge` is destructive and asks for confirmation. Run `slowave purge --dry-run` before using it on a machine with memories you want to keep.
+</Warning>
+
+## Choosing the right command
+
+| Command | Removes integrations & services | Removes database & data | Removes `*.bak.*` backups | Removes package |
+| --- | --- | --- | --- | --- |
+| `slowave uninstall` | ✅ | ❌ | ❌ | ❌ |
+| `slowave purge` | ✅ | ✅ | ✅ | ❌ |
+| `pipx uninstall slowave` | ❌ | ❌ | ❌ | ✅ |
+| `brew uninstall slowave` | ❌ | ❌ | ❌ | ✅ |
+
+<Note>
+  `slowave cleanup` is retained as a compatibility alias for `slowave purge`. Use `purge` in new scripts and documentation.
+</Note>
+
+## Step 1 — Remove integrations (uninstall or purge)
+
+### Stop using Slowave but keep your memories
+
+`slowave uninstall` removes every Slowave-managed client integration — MCP entries, lifecycle instruction blocks and hooks, and the daemon, worker, and backup services — while leaving your local data intact.
+
+```bash
+slowave uninstall --dry-run   # preview first
+slowave uninstall
+```
+
+What `slowave uninstall` preserves:
+
+- The effective runtime root, including the SQLite database and archives
+- Setup-created `*.bak.*` configuration backups
+- All unrelated client configuration, MCP entries, hooks, and instruction content
+- The installed Slowave package
+
+### Remove integrations and all local data
+
+`slowave purge` performs the same work as `uninstall` and then removes local Slowave data from the effective runtime root, including the SQLite database and all `*.bak.*` configuration backups. It asks for confirmation before proceeding.
+
+```bash
+slowave purge --dry-run   # preview first
+slowave purge
+```
+
+<Note>
+  Database archives already stored in the runtime root's `backups/` directory are **intentionally retained** by `slowave purge` so memories can be recovered. Delete that directory yourself only after confirming those archives are no longer needed.
+</Note>
+
+## Step 2 — Manual steps for Cursor and Claude Desktop
+
+Cursor and Claude Desktop lifecycle instructions were pasted into their UIs manually during setup. A command cannot remove them. After running `slowave uninstall` or `slowave purge`, remove the Slowave lifecycle block from each client by hand:
+
+<CardGroup cols={2}>
+  <Card title="Cursor" icon="arrow-pointer">
+    Open **Cursor → Settings → Rules for AI** and delete the Slowave lifecycle block. Alternatively, remove the block from your `.cursorrules` file at the project root.
+  </Card>
+
+  <Card title="Claude Desktop" icon="comment">
+    Open **Claude Desktop → Settings → General → Instructions for Claude** and delete the Slowave lifecycle block from the Custom Instructions field.
+  </Card>
+</CardGroup>
+
+## Step 3 — Remove the package
+
+Slowave does not remove its own Python package. After running `uninstall` or `purge`, remove the package with the same installer you used to install it:
+
+<CodeGroup>
+
+```bash pipx
+pipx uninstall slowave
+```
+
+```bash Homebrew
+brew uninstall slowave
+```
+
+</CodeGroup>
+
+## Full removal walkthrough
+
+<Steps>
+  <Step title="Preview with dry-run">
+    Choose `uninstall` (keep memories) or `purge` (remove everything) and preview first:
+
+    ```bash
+    slowave uninstall --dry-run
+    # or
+    slowave purge --dry-run
+    ```
+  </Step>
+  <Step title="Run uninstall or purge">
+    Apply the removal:
+
+    ```bash
+    slowave uninstall
+    # or
+    slowave purge
+    ```
+  </Step>
+  <Step title="Clean up Cursor and Claude Desktop manually">
+    If you used Cursor or Claude Desktop, delete the Slowave lifecycle block from their respective instruction surfaces as described above.
+  </Step>
+  <Step title="Uninstall the package">
+    Remove the Slowave binaries with the original installer:
+
+    ```bash
+    pipx uninstall slowave
+    # or
+    brew uninstall slowave
+    ```
+  </Step>
+</Steps>

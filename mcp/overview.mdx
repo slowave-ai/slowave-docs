@@ -1,0 +1,107 @@
+---
+title: "Slowave MCP Tools: Five-Verb Cognitive Cycle Guide"
+description: "A guide to Slowave's five MCP tools — activate, remember, recall, feedback, and commit — their ordering, server config, and session lifecycle."
+sidebarTitle: "Overview"
+---
+
+Slowave exposes its memory layer to AI coding agents through five MCP tools that together form a deterministic cognitive cycle. Every task begins with `slowave_activate`, proceeds through optional `slowave_remember` and `slowave_recall` calls during the work, records assessments with `slowave_feedback`, and closes with `slowave_commit`. The tools are served by a local HTTP daemon at `http://127.0.0.1:8766/mcp` — nothing leaves your machine.
+
+## The five tools
+
+| Tool | Purpose | Key constraint |
+| --- | --- | --- |
+| [`slowave_activate`](/mcp/activate) | Opens an implicit task session and primes working memory with scoped memories and relevant procedures. | `task`, `initial_goal`, and `scope` are all required. |
+| [`slowave_remember`](/mcp/remember) | Encodes a durable typed claim into long-term memory. | Must use an active session and matching scope. |
+| [`slowave_recall`](/mcp/recall) | Performs a deliberate semantic lookup during the same task. | Session-bound and scope-bound; use when the question changes. |
+| [`slowave_feedback`](/mcp/feedback) | Records append-only assessments of retrieved memories and procedures. | Task outcome belongs in `commit`, not here. |
+| [`slowave_commit`](/mcp/commit) | Closes the task with its outcome, verification, and optional procedure. | Complete feedback is required for every exposed retrieval target. |
+
+## Cognitive cycle order
+
+Each task follows the same five-step sequence. The steps are numbered to reflect their intended order; not every step is mandatory on every task, but the order must never be reversed.
+
+<Steps>
+  <Step title="activate">
+    Call `slowave_activate` once at the very start of the task. It opens a server-side session, runs spreading activation over scoped memory, and returns a compact working-memory set plus a `retrieval_id` and `session_id` you will use in all subsequent calls.
+  </Step>
+  <Step title="remember">
+    Call `slowave_remember` any time during the task to persist a durable, standalone claim — a fact, decision, preference, constraint, lesson, or warning — that should survive beyond the current session. Ephemeral state does not belong here.
+  </Step>
+  <Step title="recall">
+    Call `slowave_recall` when the task evolves and you need specific historical context that activation did not surface. Each recall returns a fresh `retrieval_id` that must be covered by feedback before committing.
+  </Step>
+  <Step title="feedback">
+    Call `slowave_feedback` after using (or deciding not to use) each set of retrieved memories and procedures. Assessments are append-only. Every target exposed by activation or recall must receive feedback before the session can be committed.
+  </Step>
+  <Step title="commit">
+    Call `slowave_commit` at the end of every task. It validates that all feedback is complete, records the outcome and verification, optionally captures a reusable procedure, and triggers offline memory consolidation.
+  </Step>
+</Steps>
+
+## MCP server and client configuration
+
+The Slowave HTTP MCP daemon runs locally and accepts connections only from `127.0.0.1`. Start or check its status with the CLI:
+
+```bash
+slowave serve start
+slowave serve status
+```
+
+Add the following block to your MCP client configuration to connect:
+
+```json
+{
+  "mcpServers": {
+    "slowave": {
+      "url": "http://127.0.0.1:8766/mcp"
+    }
+  }
+}
+```
+
+The daemon port and bind host can be overridden with environment variables:
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `SLOWAVE_MCP_HTTP_PORT` | `8766` | HTTP MCP daemon listen port |
+| `SLOWAVE_MCP_HOST` | `127.0.0.1` | HTTP MCP bind host |
+
+<Tip>
+  Run `slowave setup --client <name>` to have Slowave write the MCP configuration block automatically for your client. Supported clients include `claude-code`, `claude-desktop`, `cline`, `cursor`, `windsurf`, `opencode`, and `codex`.
+</Tip>
+
+## Scope format
+
+Every scoped tool call requires a `scope` parameter in `kind:id` form. Both the `kind` and `id` parts must be nonblank. Scopes create strict memory isolation — retrieval for one scope never returns memories from another unless a schema has generalized through cross-scope evidence over time.
+
+```text
+project:my-repo
+user:alice
+team:platform-eng
+```
+
+<Warning>
+  Scope strings are case-sensitive and treat `-` and `_` as distinct characters. `project:my-repo` and `project:my_repo` are two separate, fully isolated memory stores. If activation returns a `scope_fragmentation` warning, check whether you have inadvertently created a variant scope.
+</Warning>
+
+## Session lifecycle
+
+A session is opened implicitly by `slowave_activate` and closed explicitly by `slowave_commit`. The `session_id` returned by activate must be passed to `remember`, `recall`, and `commit`. You never call a separate session-start command from the MCP surface.
+
+If `slowave_commit` is not called, the idle-session reaper closes the session automatically after `SLOWAVE_SESSION_IDLE_TIMEOUT` seconds (default 3600). Reaper-closed sessions do not enforce feedback completeness.
+
+## continuity_id and cross-conversation correlation
+
+`continuity_id` is an opaque token Slowave issues to correlate multiple activations that belong to the same client conversation thread. The rules are simple:
+
+- **Omit it** on the very first `slowave_activate` call in a new conversation.
+- **Retain and resend** the `continuity_id` value from the activate response on every subsequent activation within the same conversation.
+- **Never invent** a `continuity_id` or reuse one from a different conversation.
+
+Continuity does not relax the scope boundary. It only tells Slowave that two activations are part of the same reasoning thread, which may expand context reinstatement on the first activation of a new task.
+
+## MCP tools vs CLI lifecycle
+
+<Note>
+  The CLI uses an older five-step sequence that includes `reinforce` instead of `feedback`. **Do not use CLI examples as an agent integration contract.** The MCP tools — `activate → remember → recall → feedback → commit` — are the only supported path for agent integrations. `slowave reinforce` is a CLI compatibility command and is not an MCP tool.
+</Note>

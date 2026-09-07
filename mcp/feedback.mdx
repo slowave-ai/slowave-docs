@@ -1,0 +1,243 @@
+---
+title: "slowave_feedback: record memory and procedure assessments"
+description: "Submit append-only assessments of retrieved memories and procedures — required for every exposed retrieval target before slowave_commit will succeed."
+sidebarTitle: "feedback"
+---
+
+`slowave_feedback` records what actually happened after retrieval. Every memory and procedure exposed by `slowave_activate` or `slowave_recall` must be assessed before the session can be committed. Feedback is append-only — assessments are evidence that persists in Slowave's retrieval quality ledger and influences future activations; they cannot be retracted. Task outcome does not belong here; `slowave_commit` owns that.
+
+## Scalar vs batch calling
+
+`slowave_feedback` supports two calling patterns:
+
+- **Scalar**: pass `retrieval_id` and the feedback lists directly to assess one retrieval event.
+- **Batch**: pass an `items` list where each entry is a scalar-shaped feedback object, to assess multiple retrieval events in one round trip.
+
+The two forms are mutually exclusive. If `items` is provided, all scalar feedback fields (`retrieval_id`, `memory_feedback`, `procedure_feedback`, `retrieval_quality`, `missing`) must be omitted and `coverage` must remain at its default of `partial`.
+
+## Parameters
+
+<ParamField body="retrieval_id" type="string">
+  The opaque retrieval identifier returned by `slowave_activate` or `slowave_recall`. Required when using the scalar form. Must correspond to a known retrieval event for the current session.
+</ParamField>
+
+<ParamField body="memory_feedback" type="array">
+  A list of per-memory assessments. Each entry must contain `memory_id` and `assessment`, plus additional fields required by certain assessment values.
+
+  <Expandable title="memory feedback entry fields">
+    <ParamField body="memory_id" type="string" required>
+      The `sch_N` identifier of the memory being assessed, as returned in the `memories` array of the activate or recall response.
+    </ParamField>
+
+    <ParamField body="assessment" type="string" required>
+      One of three values:
+
+      - `used` — the memory was directly consulted and contributed to the task.
+      - `irrelevant` — the memory was returned but had no bearing on this task.
+      - `stale` — the memory is no longer accurate or applicable. Requires `stale_reason` and `reason`.
+    </ParamField>
+
+    <ParamField body="stale_reason" type="string">
+      Required when `assessment` is `stale`. Classifies why the memory is stale:
+
+      - `contradicted` — the claim contradicts verified current state.
+      - `superseded` — a newer, more accurate claim replaces this one. Requires `replacement_memory_id`.
+      - `outdated` — the claim was true at some point but is no longer current.
+      - `unsupported` — the claim lacks supporting evidence.
+      - `withdrawn` — the claim was explicitly retracted.
+    </ParamField>
+
+    <ParamField body="replacement_memory_id" type="string">
+      Required when `stale_reason` is `superseded`. The `sch_N` identifier of the memory that replaces this one.
+    </ParamField>
+
+    <ParamField body="reason" type="string">
+      Required when `assessment` is `stale`. A concise explanation of why the memory is stale, in your own words.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="procedure_feedback" type="array">
+  A list of per-procedure assessments. Procedure feedback keeps usage and effect as separate signals.
+
+  <Expandable title="procedure feedback entry fields">
+    <ParamField body="procedure_id" type="string" required>
+      The identifier of the procedure being assessed, as returned in the `procedures` array of the activate or recall response.
+    </ParamField>
+
+    <ParamField body="use" type="string" required>
+      Whether the procedure was used:
+
+      - `used` — the procedure was followed or referenced during the task.
+      - `not_used` — the procedure was retrieved but not applied.
+    </ParamField>
+
+    <ParamField body="effect" type="string" required>
+      The observed outcome of applying the procedure:
+
+      - `helped` — the procedure contributed positively to the task outcome.
+      - `no_effect` — the procedure was followed but had no measurable impact.
+      - `harmed` — following the procedure made things worse.
+      - `unknown` — the effect cannot be determined.
+    </ParamField>
+
+    <ParamField body="contribution" type="string">
+      A brief description of how the procedure contributed. Required when `use` is `used`.
+    </ParamField>
+
+    <ParamField body="reason" type="string">
+      Optional free-text explanation of the assessment, especially useful when `effect` is `harmed` or `no_effect`.
+    </ParamField>
+  </Expandable>
+</ParamField>
+
+<ParamField body="retrieval_quality" type="string">
+  Optional whole-result quality assessment for the retrieval event as a whole, independent of individual memory assessments.
+</ParamField>
+
+<ParamField body="missing" type="array">
+  Optional list of strings describing knowledge that was expected but absent from the retrieval results. Use this to record what Slowave should have surfaced but did not — this signal helps improve future retrievals.
+</ParamField>
+
+<ParamField body="coverage" type="string">
+  Controls how silence is interpreted for this feedback call. Accepted values:
+
+  - `partial` (default) — you are only assessing a subset of exposed targets. Targets not mentioned are left as unknown rather than treated as negative evidence.
+  - `complete` — you have assessed every target exposed by this retrieval. Targets not mentioned in `memory_feedback` or `procedure_feedback` are implicitly treated as assessed.
+
+  Use `complete` only when you have genuinely reviewed every memory and procedure returned by the retrieval event.
+</ParamField>
+
+<ParamField body="items" type="array">
+  A batch list of scalar-shaped feedback objects. Each entry has the same shape as the scalar parameters (`retrieval_id`, `memory_feedback`, `procedure_feedback`, `retrieval_quality`, `missing`, `coverage`). Mutually exclusive with all scalar feedback fields.
+</ParamField>
+
+## Response
+
+### Scalar response
+
+Returns the feedback record as stored by the engine, confirming what was recorded.
+
+### Batch response
+
+When `items` is used, the response is `{"ok": true, "data": {"results": [...]}}` where each entry contains:
+
+<ResponseField name="ok" type="boolean">
+  `true` if this individual feedback item was recorded successfully.
+</ResponseField>
+
+<ResponseField name="data" type="object">
+  Present when `ok` is `true`. The stored feedback record for this item.
+</ResponseField>
+
+<ResponseField name="error" type="object">
+  Present when `ok` is `false`. Contains `code`, `message`, and `retryable`.
+</ResponseField>
+
+## Append-only semantics
+
+Feedback cannot be retracted or modified after it is written. Each call appends new evidence to the retrieval quality ledger. If you call `slowave_feedback` twice for the same `retrieval_id`, both records are preserved. This is by design: the accumulation of honest, granular feedback over time is what allows Slowave to improve retrieval quality across sessions.
+
+## Coverage and the feedback authorization model
+
+Slowave tracks exactly which memories and procedures were exposed by each retrieval event. Before `slowave_commit` can succeed, every exposed target must have received at least one feedback assessment. This is the **feedback authorization model**: feedback is authorized only for targets that were actually returned, and closure is gated on coverage of all of them.
+
+The `coverage` parameter determines how partial silence is interpreted:
+
+- With `coverage: partial`, you can submit feedback for a subset of targets in one call and cover the rest in subsequent calls before committing.
+- With `coverage: complete`, you are declaring that your current feedback submission covers all exposed targets.
+
+<Warning>
+  If `slowave_commit` returns `{"ok": false, "error": {"code": "incomplete_feedback", "retryable": true}}`, the `outstanding` array in the error lists every retrieval ID and target that still needs feedback. Submit `slowave_feedback` for each outstanding item, then retry the commit.
+</Warning>
+
+## Examples
+
+<CodeGroup>
+
+```json Used memory, irrelevant memory
+{
+  "retrieval_id": "ctx_a1b2c3d4e5f6",
+  "memory_feedback": [
+    {
+      "memory_id": "sch_42",
+      "assessment": "used"
+    },
+    {
+      "memory_id": "sch_17",
+      "assessment": "irrelevant"
+    }
+  ],
+  "coverage": "complete"
+}
+```
+
+```json Stale memory (superseded)
+{
+  "retrieval_id": "ctx_a1b2c3d4e5f6",
+  "memory_feedback": [
+    {
+      "memory_id": "sch_8",
+      "assessment": "stale",
+      "stale_reason": "superseded",
+      "replacement_memory_id": "sch_91",
+      "reason": "The team migrated from Redis to Valkey in August 2026; sch_91 has the current decision."
+    }
+  ]
+}
+```
+
+```json Procedure feedback
+{
+  "retrieval_id": "rec_x9y8z7w6v5u4",
+  "procedure_feedback": [
+    {
+      "procedure_id": "proc_3",
+      "use": "used",
+      "effect": "helped",
+      "contribution": "Followed the Docker build procedure; image built and deployed successfully on first attempt."
+    }
+  ]
+}
+```
+
+```json Batch (two retrieval events)
+{
+  "items": [
+    {
+      "retrieval_id": "ctx_a1b2c3d4e5f6",
+      "memory_feedback": [
+        {"memory_id": "sch_42", "assessment": "used"}
+      ],
+      "coverage": "complete"
+    },
+    {
+      "retrieval_id": "rec_x9y8z7w6v5u4",
+      "memory_feedback": [
+        {"memory_id": "sch_55", "assessment": "irrelevant"}
+      ],
+      "coverage": "complete"
+    }
+  ]
+}
+```
+
+```json Missing context signal
+{
+  "retrieval_id": "ctx_a1b2c3d4e5f6",
+  "memory_feedback": [
+    {"memory_id": "sch_42", "assessment": "used"}
+  ],
+  "missing": [
+    "No memory about the current CI/CD pipeline configuration was returned.",
+    "Expected a constraint about required code review approvals."
+  ],
+  "coverage": "partial"
+}
+```
+
+</CodeGroup>
+
+<Note>
+  `slowave_feedback` is not the place to record the task outcome. Whether the task succeeded or failed belongs in `slowave_commit`. Feedback is strictly about the quality and accuracy of what was retrieved, not about what you accomplished.
+</Note>

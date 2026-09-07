@@ -1,0 +1,330 @@
+---
+title: "Configure each AI coding client to connect to Slowave"
+description: "Per-client setup details for Claude Code, Cline, Cursor, Windsurf, OpenCode, Codex, and Claude Desktop — config files, detection, and manual steps."
+sidebarTitle: "Client Setup"
+---
+
+Running `slowave setup` configures every AI client detected on your machine in a single pass. If you need to configure just one client, or want to understand exactly which files are modified and what manual steps are required, this page covers each supported client individually. Two clients — **Cursor** and **Claude Desktop** — require one manual paste after setup because their instruction surfaces cannot be modified programmatically.
+
+<Tabs>
+  <Tab title="Claude Code">
+    ## Claude Code
+
+    Claude Code is fully automated. `slowave setup` patches the MCP registry, injects enforcement hooks, and writes the lifecycle instruction block — no manual steps needed.
+
+    ```bash
+    slowave setup --client claude-code
+    ```
+
+    ### Detection
+
+    Detected when `~/.claude/` exists on your machine.
+
+    ### Files modified
+
+    | What | File |
+    | --- | --- |
+    | MCP server entry | `~/.claude.json` (user-scope MCP registry) |
+    | Lifecycle instructions | `~/.claude/CLAUDE.md` |
+    | Enforcement hooks | `~/.claude/settings.json` (`UserPromptSubmit` + `Stop`) |
+
+    ### MCP config block
+
+    ```json
+    {
+      "mcpServers": {
+        "slowave": {
+          "type": "http",
+          "url": "http://127.0.0.1:8766/mcp"
+        }
+      }
+    }
+    ```
+
+    Claude Code uses the MCP Streamable HTTP transport and requires the `"type": "http"` field. This entry is written to `~/.claude.json`.
+
+    ### Enforcement hooks
+
+    Claude Code has a native hooks system. Slowave installs `UserPromptSubmit` and `Stop` hooks into `~/.claude/settings.json` so the client calls `slowave_activate` at the start of every turn and `slowave_commit` before finishing — no manual invocation needed.
+
+    After setup, restart Claude Code to apply changes.
+
+    <Tip>
+      Verify from the terminal: `slowave doctor` shows client detection and daemon health. `slowave stats` shows session and event counts.
+    </Tip>
+  </Tab>
+  <Tab title="Cline">
+    ## Cline
+
+    Cline is fully automated. `slowave setup` patches the MCP settings file and injects the lifecycle block into the global rules directory — no manual steps needed.
+
+    ```bash
+    slowave setup --client cline
+    ```
+
+    ### Detection
+
+    Detected when `~/.cline/` exists (CLI/TUI), or the VS Code extension's `globalStorage` parent directory exists.
+
+    ### Files modified
+
+    | What | File |
+    | --- | --- |
+    | MCP server (CLI/TUI, macOS/Linux) | `~/.cline/data/settings/cline_mcp_settings.json` |
+    | MCP server (CLI/TUI, Windows) | `%USERPROFILE%\.cline\data\settings\cline_mcp_settings.json` |
+    | MCP server (VS Code, macOS) | `~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json` |
+    | MCP server (VS Code, Linux) | `~/.config/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json` |
+    | MCP server (VS Code, Windows) | `%APPDATA%\Code\User\globalStorage\saoudrizwan.claude-dev\settings\cline_mcp_settings.json` |
+    | Lifecycle instructions (macOS/Linux) | `~/.cline/rules/slowave.md` |
+    | Lifecycle instructions (Windows) | `%USERPROFILE%\.clinerules` |
+
+    ### MCP config block
+
+    ```json
+    {
+      "mcpServers": {
+        "slowave": {
+          "url": "http://127.0.0.1:8766/sse"
+        }
+      }
+    }
+    ```
+
+    <Warning>
+      Cline resolves MCP settings from `~/.cline/data/settings/cline_mcp_settings.json` (or `$CLINE_MCP_SETTINGS_PATH`). The legacy `~/.cline/mcp.json` path is **not** read by current Cline. Writing config there will cause `slowave doctor` to report the client as configured while the tools never appear.
+    </Warning>
+
+    After setup, reload Cline (or restart VS Code / Cursor) to apply changes.
+  </Tab>
+  <Tab title="Cursor">
+    ## Cursor
+
+    Cursor requires **one manual step** after setup. `slowave setup` patches the MCP config file automatically, but lifecycle instructions must be pasted manually because Cursor's Rules for AI field cannot be modified programmatically.
+
+    ```bash
+    slowave setup --client cursor
+    ```
+
+    ### Detection
+
+    Detected when `~/.cursor/` exists on your machine.
+
+    ### Files modified automatically
+
+    | What | File |
+    | --- | --- |
+    | MCP server | `~/.cursor/mcp.json` |
+
+    ### MCP config block
+
+    ```json
+    {
+      "mcpServers": {
+        "slowave": {
+          "type": "http",
+          "url": "http://127.0.0.1:8766/mcp"
+        }
+      }
+    }
+    ```
+
+    ### Manual step required
+
+    Open **Cursor → Settings → Rules for AI** (or add a `.cursorrules` file at the root of your project) and paste the lifecycle instruction block that `slowave setup` prints to your terminal.
+
+    <Note>
+      Cursor's MCP integration exposes tools but does not automatically instruct the AI when to call them. The Rules for AI field fires on every request and ensures Slowave's session lifecycle is honoured from the first message.
+    </Note>
+
+    After setup and the manual paste, restart Cursor to apply changes.
+  </Tab>
+  <Tab title="Windsurf">
+    ## Windsurf
+
+    Windsurf is fully automated. `slowave setup` patches the MCP config and injects the lifecycle block into Windsurf's global rules — no manual steps needed.
+
+    ```bash
+    slowave setup --client windsurf
+    ```
+
+    ### Detection
+
+    Detected when `~/.codeium/windsurf/` exists on your machine.
+
+    ### Files modified
+
+    | What | File |
+    | --- | --- |
+    | MCP server | `~/.codeium/windsurf/mcp_config.json` |
+    | Lifecycle instructions | `~/.codeium/windsurf/memories/global_rules.md` |
+
+    ### MCP config block
+
+    ```json
+    {
+      "mcpServers": {
+        "slowave": {
+          "type": "http",
+          "url": "http://127.0.0.1:8766/mcp"
+        }
+      }
+    }
+    ```
+
+    The lifecycle block is injected into `global_rules.md`, which is Windsurf's always-on global rules surface — it is injected into every Cascade conversation automatically.
+
+    After setup, restart or reload Windsurf to apply changes.
+  </Tab>
+  <Tab title="OpenCode">
+    ## OpenCode
+
+    OpenCode is fully automated. `slowave setup` patches the global config, registers Slowave as a remote MCP server, and writes a Slowave-owned lifecycle instruction file — no manual steps needed.
+
+    ```bash
+    slowave setup --client opencode
+    ```
+
+    ### Detection
+
+    Detected when `~/.config/opencode/` exists on your machine.
+
+    ### Files modified
+
+    | What | File |
+    | --- | --- |
+    | MCP server + instructions config | `~/.config/opencode/opencode.json` |
+    | Lifecycle instructions | `~/.config/opencode/slowave-instructions.md` |
+
+    ### MCP config block
+
+    OpenCode uses the `mcp` key (not `mcpServers`) and `"type": "remote"`:
+
+    ```json
+    {
+      "$schema": "https://opencode.ai/config.json",
+      "mcp": {
+        "slowave": {
+          "type": "remote",
+          "url": "http://127.0.0.1:8766/mcp",
+          "enabled": true
+        }
+      },
+      "instructions": [
+        "/absolute/path/to/slowave-instructions.md"
+      ]
+    }
+    ```
+
+    Slowave writes its lifecycle instructions to a dedicated file (`slowave-instructions.md`) and registers it in OpenCode's `instructions` array. This keeps setup and uninstall clean — the file is Slowave-owned and is not mixed into any user-managed file.
+
+    After setup, restart OpenCode to apply changes.
+  </Tab>
+  <Tab title="Codex">
+    ## Codex
+
+    Codex is fully automated. `slowave setup` patches `~/.codex/config.toml` (a single TOML file shared by the CLI, Codex Desktop, and the IDE extension), injects enforcement hooks, and writes the lifecycle block to `AGENTS.md`.
+
+    ```bash
+    slowave setup --client codex
+    ```
+
+    ### Detection
+
+    Detected when `~/.codex/` exists (or `$CODEX_HOME` if set).
+
+    ### One integration, three surfaces
+
+    `slowave setup --client codex` configures the CLI, the Codex Desktop app (in ChatGPT), and the Codex IDE extension all at once. All three share `~/.codex/config.toml`.
+
+    ### Files modified
+
+    | What | File |
+    | --- | --- |
+    | MCP server + enforcement hooks | `~/.codex/config.toml` |
+    | Lifecycle instructions | `~/.codex/AGENTS.md` |
+
+    ### MCP and hooks config block
+
+    Codex uses TOML. Both the MCP entry and the enforcement hooks live in the same file:
+
+    ```toml
+    [mcp_servers.slowave]
+    url = "http://127.0.0.1:8766/mcp"
+    ```
+
+    `slowave setup` patches both the `[mcp_servers.slowave]` table and the `[[hooks.UserPromptSubmit]]` / `[[hooks.Stop]]` entries in a single read/write pass, so a re-run never leaves a partial state.
+
+    <Warning>
+      If you have `~/.codex/AGENTS.override.md`, Codex reads **only** that file at global scope and ignores `AGENTS.md` entirely. `slowave doctor` warns if this applies to you. If it does, copy the lifecycle block from `AGENTS.md` into your override file manually.
+    </Warning>
+
+    `$CODEX_HOME` is respected if set; it defaults to `~/.codex`.
+
+    After setup, restart Codex (CLI, Desktop, or IDE extension) to apply changes.
+  </Tab>
+  <Tab title="Claude Desktop">
+    ## Claude Desktop
+
+    Claude Desktop requires **one manual step** after setup. `slowave setup` patches the MCP config automatically, but lifecycle instructions must be pasted manually because the Custom Instructions field is stored server-side and cannot be modified programmatically.
+
+    ```bash
+    slowave setup --client claude-desktop
+    ```
+
+    ### Detection
+
+    Detected when the platform-specific application support directory exists:
+
+    | Platform | Detected when |
+    | --- | --- |
+    | macOS | `~/Library/Application Support/Claude/` exists |
+    | Linux | `~/.config/Claude/` exists |
+    | Windows | `%APPDATA%\Claude\` exists |
+
+    ### Files modified automatically
+
+    | Platform | File |
+    | --- | --- |
+    | macOS | `~/Library/Application Support/Claude/claude_desktop_config.json` |
+    | Linux | `~/.config/Claude/claude_desktop_config.json` |
+    | Windows | `%APPDATA%\Claude\claude_desktop_config.json` |
+
+    ### MCP config block
+
+    Claude Desktop uses **stdio transport** (not HTTP). The config entry uses a `command` field pointing to the `slowave-mcp` binary:
+
+    ```json
+    {
+      "mcpServers": {
+        "slowave": {
+          "command": "/path/to/slowave-mcp"
+        }
+      }
+    }
+    ```
+
+    Run `which slowave-mcp` (macOS/Linux) to find the binary path (e.g. `~/.local/bin/slowave-mcp`). Claude Desktop does **not** support the `"type": "http"` or `"url"` formats used by other clients.
+
+    ### Manual step required
+
+    Open **Claude Desktop → Settings → General → Instructions for Claude** and paste the lifecycle instruction block that `slowave setup` prints to your terminal.
+
+    <Note>
+      Custom Instructions fire before turn 1. Claude Desktop Skills fire from turn 2 onward. The Custom Instructions field is stored server-side — `slowave setup` cannot patch it automatically. This is why the manual paste is required.
+    </Note>
+
+    After setup and the manual paste, restart Claude Desktop to apply changes.
+  </Tab>
+</Tabs>
+
+## Summary: automatic vs. manual
+
+<CardGroup cols={2}>
+  <Card title="Fully automated" icon="circle-check">
+    **Claude Code**, **Cline**, **Windsurf**, **OpenCode**, and **Codex** are configured end-to-end by `slowave setup`. Restart the client after setup.
+  </Card>
+
+  <Card title="One manual paste required" icon="hand-pointer">
+    **Cursor** and **Claude Desktop** require you to paste the lifecycle block after setup — into **Rules for AI** and **Settings → General → Instructions for Claude** respectively.
+  </Card>
+</CardGroup>

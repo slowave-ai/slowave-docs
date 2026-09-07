@@ -1,0 +1,94 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "palm",
+  "name": "Slowave",
+  "colors": {
+    "primary": "#6366F1",
+    "light": "#818CF8",
+    "dark": "#4338CA"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "pages": [
+      {
+        "group": "Getting Started",
+        "pages": [
+          "index",
+          "quickstart"
+        ]
+      }
+    ],
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "index",
+              "quickstart",
+              "how-it-works"
+            ]
+          },
+          {
+            "group": "Setup & Integrations",
+            "pages": [
+              "setup/installation",
+              "setup/client-integrations",
+              "setup/services",
+              "setup/removal"
+            ]
+          },
+          {
+            "group": "Using Slowave",
+            "pages": [
+              "guides/memory-lifecycle",
+              "guides/scopes",
+              "guides/procedures",
+              "guides/dashboard"
+            ]
+          },
+          {
+            "group": "Operations",
+            "pages": [
+              "operations/cli-reference",
+              "operations/backup-restore",
+              "operations/configuration",
+              "operations/troubleshooting"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": [
+              "reference/architecture",
+              "reference/design",
+              "reference/benchmarks"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "MCP Tools",
+        "groups": [
+          {
+            "group": "MCP Tools",
+            "pages": [
+              "mcp/overview",
+              "mcp/activate",
+              "mcp/remember",
+              "mcp/recall",
+              "mcp/feedback",
+              "mcp/commit"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/slowave-ai/slowave"
+    }
+  }
+}

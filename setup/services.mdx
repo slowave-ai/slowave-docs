@@ -1,0 +1,225 @@
+---
+title: "Slowave background services: daemon, worker, and backup"
+description: "Three services power Slowave at runtime — an HTTP MCP daemon, a consolidation worker, and a daily backup. Learn what each does and how to verify them."
+sidebarTitle: "Services"
+---
+
+`slowave setup` installs three background services automatically: an HTTP MCP daemon that all clients connect to, a background worker that consolidates raw events into searchable memory, and a daily backup that snapshots the SQLite database. On macOS, services are installed as launchd user agents. On Linux, as systemd user services. On Windows, as Task Scheduler tasks. All three start automatically after setup and restart if they stop.
+
+## The three services
+
+<CardGroup cols={3}>
+  <Card title="HTTP MCP daemon" icon="server">
+    Serves the `slowave_*` tools at `http://127.0.0.1:8766/mcp`. Every connected AI client talks to this single local endpoint.
+  </Card>
+
+  <Card title="Background worker" icon="gears">
+    Runs consolidation offline — transforms raw session events into searchable episodes, prototypes, schemas, and relations.
+  </Card>
+
+  <Card title="Daily backup" icon="database">
+    Takes a gzip snapshot of the SQLite database once per day. Keeps the last 7 backups in the runtime root's `backups/` directory.
+  </Card>
+</CardGroup>
+
+## HTTP MCP daemon
+
+The daemon is the only network-facing component of Slowave. It binds to `127.0.0.1:8766` and serves MCP over HTTP. All AI clients — Claude Code, Cline, Cursor, Windsurf, OpenCode, Codex, and Claude Desktop — connect to this single endpoint rather than spawning per-session subprocesses.
+
+The MCP config block written to every client (except Claude Desktop) points here:
+
+```json
+{
+  "mcpServers": {
+    "slowave": {
+      "type": "http",
+      "url": "http://127.0.0.1:8766/mcp"
+    }
+  }
+}
+```
+
+<Tabs>
+  <Tab title="macOS">
+    ### macOS — launchd
+
+    | Item | Value |
+    | --- | --- |
+    | Service file | `~/Library/LaunchAgents/com.slowave.daemon.plist` |
+    | Started with | `launchctl load` |
+    | Auto-start | `RunAtLoad` + `KeepAlive` |
+
+    **Verify:**
+
+    ```bash
+    launchctl list | grep slowave
+    ```
+
+    **Check logs:**
+
+    ```bash
+    # Logs are written to the runtime root's logs/ directory
+    slowave doctor   # prints the effective runtime root
+    ```
+  </Tab>
+  <Tab title="Linux">
+    ### Linux — systemd
+
+    | Item | Value |
+    | --- | --- |
+    | Service file | `~/.config/systemd/user/slowave-daemon.service` |
+    | Started with | `systemctl --user enable --now slowave-daemon` |
+    | Auto-start | `Restart=always` |
+
+    **Verify:**
+
+    ```bash
+    systemctl --user status slowave-daemon
+    ```
+
+    **Check logs:**
+
+    ```bash
+    journalctl --user -u slowave-daemon
+    ```
+  </Tab>
+  <Tab title="Windows">
+    ### Windows — Task Scheduler
+
+    | Item | Value |
+    | --- | --- |
+    | Task name | `SlowaveDaemon` |
+    | Runs as | Current interactive user |
+    | Auto-start | At logon + repeating every 5 minutes |
+
+    **Verify:**
+
+    ```powershell
+    Get-ScheduledTask -TaskName SlowaveDaemon
+    ```
+  </Tab>
+</Tabs>
+
+## Background worker
+
+The background worker runs consolidation offline, separate from the daemon and without any LLM API key. It transforms raw events stored by connected agents into the higher-level memory structures (episodes, prototypes, schemas, relations) that `slowave_activate` and `slowave_recall` retrieve.
+
+<Tabs>
+  <Tab title="macOS">
+    ### macOS — launchd
+
+    | Item | Value |
+    | --- | --- |
+    | Service file | `~/Library/LaunchAgents/com.slowave.worker.plist` |
+    | Started with | `launchctl load` |
+    | Consolidation interval | Every 300 seconds |
+
+    **Verify:**
+
+    ```bash
+    launchctl list | grep slowave
+    ```
+  </Tab>
+  <Tab title="Linux">
+    ### Linux — systemd
+
+    | Item | Value |
+    | --- | --- |
+    | Service file | `~/.config/systemd/user/slowave-worker.service` |
+    | Started with | `systemctl --user enable --now slowave-worker` |
+    | Consolidation interval | Every 300 seconds |
+
+    **Verify:**
+
+    ```bash
+    systemctl --user status slowave-worker
+    ```
+  </Tab>
+  <Tab title="Windows">
+    ### Windows — Task Scheduler
+
+    | Item | Value |
+    | --- | --- |
+    | Task name | `SlowaveWorker` |
+    | Runs as | Current interactive user |
+    | Auto-start | At logon + repeating every 5 minutes |
+
+    **Verify:**
+
+    ```powershell
+    Get-ScheduledTask -TaskName SlowaveWorker
+    ```
+  </Tab>
+</Tabs>
+
+## Daily backup
+
+The backup service takes a gzip snapshot of the SQLite database once per day and stores it in the runtime root's `backups/` directory. It retains the last 7 backups automatically. Backup archives are intentionally preserved by `slowave purge` so memories can be recovered after a purge — delete the `backups/` directory manually only when you are certain those archives are no longer needed.
+
+<Tabs>
+  <Tab title="macOS">
+    ### macOS — launchd
+
+    | Item | Value |
+    | --- | --- |
+    | Service file | `~/Library/LaunchAgents/com.slowave.backup.plist` |
+    | Schedule | Daily at 03:00 (`StartCalendarInterval`) |
+
+    **Verify:**
+
+    ```bash
+    launchctl list com.slowave.backup
+    ```
+  </Tab>
+  <Tab title="Linux">
+    ### Linux — systemd timer
+
+    | Item | Value |
+    | --- | --- |
+    | Service file | `~/.config/systemd/user/slowave-backup.service` |
+    | Timer file | `~/.config/systemd/user/slowave-backup.timer` |
+    | Schedule | Daily (`OnCalendar=daily`), persistent |
+
+    **Verify:**
+
+    ```bash
+    systemctl --user status slowave-backup.timer
+    ```
+  </Tab>
+  <Tab title="Windows">
+    ### Windows — Task Scheduler
+
+    | Item | Value |
+    | --- | --- |
+    | Task name | `SlowaveBackup` |
+    | Schedule | Daily |
+
+    **Verify:**
+
+    ```powershell
+    Get-ScheduledTask -TaskName SlowaveBackup
+    ```
+  </Tab>
+</Tabs>
+
+## Runtime data location
+
+Slowave stores all runtime data (database, logs, backups, PID file, setup sentinel) under a single per-user root selected by `platformdirs`:
+
+| Platform | Default runtime root |
+| --- | --- |
+| macOS | `~/Library/Application Support/slowave` |
+| Linux | `$XDG_DATA_HOME/slowave` (normally `~/.local/share/slowave`) |
+| Windows | `%LOCALAPPDATA%\slowave` |
+
+Set `SLOWAVE_HOME` to relocate the entire runtime tree (useful for CI, containers, or portable installs). `SLOWAVE_DB` is a legacy override for the exact database path; setting both variables at once is an error.
+
+Run `slowave doctor` to print the effective runtime root and database path on your current machine.
+
+## Verifying all services at once
+
+```bash
+slowave doctor
+```
+
+`slowave doctor` checks daemon health, lists detected clients and their configuration status, and prints the effective runtime root and database path. Run it any time you are unsure whether Slowave is fully operational.

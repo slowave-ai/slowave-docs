@@ -1,0 +1,299 @@
+---
+title: "Slowave CLI reference: commands, subcommands, and flags"
+description: "Complete reference for every Slowave CLI command — lifecycle, session, operations, maintenance, setup, and diagnostics — with real invocation examples."
+sidebarTitle: "CLI Reference"
+---
+
+The Slowave CLI is the primary interface for local setup, inspection, scripting, and maintenance. Every command accepts a `--json` flag that switches output to machine-readable JSON, making it straightforward to pipe results through scripts or integrate into CI workflows. The CLI never calls an external LLM — all ingest, consolidation, and recall operations run entirely on your machine.
+
+<Note>
+  The database is stored as a plaintext SQLite file by default. If its contents are sensitive, place it on an encrypted volume or protect it with operating-system file permissions.
+</Note>
+
+## MCP lifecycle vs. CLI lifecycle
+
+Agents that connect through MCP use the five-verb contract:
+
+```text
+activate → remember → recall → feedback → commit
+```
+
+The CLI exposes an older, manual equivalent that uses `reinforce` instead of `feedback`:
+
+```text
+activate → remember → recall → reinforce → commit
+```
+
+`slowave reinforce` is a CLI compatibility and experimentation command. It is **not** an MCP tool and does not replace MCP `feedback`. Do not use the CLI examples in this section as your agent integration contract — use the MCP tool contracts documented in the Architecture guide instead.
+
+---
+
+## Global flags
+
+These flags apply to every command:
+
+| Flag | Purpose |
+| --- | --- |
+| `--db <path>` | Override the SQLite database file. Defaults to the resolved user-data root. |
+| `--json` | Emit JSON output instead of human-readable text. |
+| `--version` | Print the installed package version. |
+
+---
+
+## Manual lifecycle commands
+
+These commands are useful for testing a local database or building a scripted workflow. For normal agent use, prefer an MCP client.
+
+### activate
+
+Opens a task session and retrieves relevant context from memory.
+
+```bash
+slowave --json activate \
+  --query "fix the session reaper race condition" \
+  --scope "project:my-repo" \
+  --initial-goal "Fix the session reaper race" \
+  --mode strict_scope
+```
+
+The response includes a `session_id` and a `retrieval_id`. Pass the `retrieval_id` to `reinforce` and the `session_id` to `commit`.
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--query` | _(required)_ | Current task description |
+| `--scope` | — | Scope identifier, e.g. `project:my-repo` |
+| `--initial-goal` | — | Provisional goal phrase |
+| `--goal` | — | 3–6 word verb-noun phrase |
+| `--mode` | `strict_scope` | `default`, `strict_scope`, `broad`, or `debug` |
+| `--limit` | `8` | Maximum number of memories to return |
+| `--task-type` | — | Category hint, e.g. `coding` or `debugging` |
+| `--situation` | — | JSON object with situational metadata |
+| `--requirement` | — | Repeatable requirement cue |
+| `--topic` | — | Repeatable topic cue |
+| `--entity` | — | Repeatable entity cue |
+
+### remember
+
+Records a typed durable claim. The `--session` flag is optional; omit it for a standalone assertion.
+
+```bash
+slowave --json remember "SQLite is preferred for small local deployments." \
+  --type decision --scope "project:my-repo" --session sess_abc123
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--type` | `decision` | Memory type: `fact`, `decision`, `lesson`, `warning`, etc. |
+| `--scope` | — | Scope identifier |
+| `--session` | — | Session ID to attach this memory to |
+
+### recall
+
+Performs a semantic lookup against stored memories.
+
+```bash
+slowave --json recall "database choice" \
+  --scope "project:my-repo" --top-k 5 --evidence
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--scope` | — | Scope filter — strongly recommended |
+| `--top-k` | `20` | Number of results to return |
+| `--mode` | `default` | `default`, `strict_scope`, `broad`, or `debug` |
+| `--evidence` | off | Include raw-event citations in the response |
+
+### reinforce
+
+Records feedback for a CLI `activate` or `recall` retrieval. Accepts the `retrieval_id` returned by those commands.
+
+```bash
+slowave --json reinforce ctx_abc123 \
+  --feedback useful --outcome success --used sch_5 --irrelevant sch_7
+```
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--feedback` | `useful` | `useful`, `partially_useful`, `irrelevant`, `stale`, `wrong`, `missing`, `too_much_context` |
+| `--outcome` | `unknown` | `success`, `partial`, `failure`, or `unknown` |
+| `--used` | — | Repeatable: schema IDs that were relied on |
+| `--irrelevant` | — | Repeatable: schema IDs that were not relevant |
+| `--stale` | — | Repeatable: schema IDs that are outdated |
+| `--wrong` | — | Repeatable: schema IDs that are factually wrong |
+
+### commit
+
+Closes a task session and encodes events into episodic memories.
+
+```bash
+slowave --json commit sess_abc123 \
+  --outcome success \
+  --final-goal "Fix the session reaper race" \
+  --outcome-summary "Added the lock and verified concurrent cleanup."
+```
+
+Supply an accurate `--outcome`. Include `--final-goal` and `--outcome-summary` when available — these improve the quality of consolidated memories.
+
+| Flag | Default | Description |
+| --- | --- | --- |
+| `--outcome` | `unknown` | `success`, `partial`, `failure`, or `unknown` |
+| `--final-goal` | — | Goal confirmed or refined at commit time |
+| `--outcome-summary` | — | One-sentence description of the actual result |
+| `--step` | — | Repeatable: ordered steps taken this session |
+| `--procedure-json` | — | Structured procedure as a JSON object |
+
+---
+
+## Lower-level session and event commands
+
+Use `session` and `event` directly when you need raw event ingestion without the higher-level lifecycle wrapper.
+
+```bash
+SID=$(slowave --json session start --scope "project:my-repo" \
+  | python3 -c 'import json,sys; print(json.load(sys.stdin)["session_id"])')
+
+slowave event --session "$SID" --type user_message \
+  --content "I prefer SQLite for MVPs."
+
+slowave session end "$SID"
+```
+
+`session end` is a lower-level close operation. Use `commit` when following the manual lifecycle above.
+
+The `context` command produces a working-memory brief and may open an implicit session when given a `--scope`. It returns a `retrieval_id` for use with `reinforce`.
+
+---
+
+## Operations and maintenance
+
+These commands cover day-to-day inspection and database maintenance.
+
+| Command | Purpose |
+| --- | --- |
+| `slowave status` | Check database existence, memory health, and local process status. |
+| `slowave stats [--scope S] [--verbose] [--graph]` | Inspect storage statistics, schema health, and optionally a full graph health report. |
+| `slowave schema [--needs-review]` | List schemas; `--needs-review` filters to labile entries that need human attention. |
+| `slowave show sch_N\|epi_N\|evt_N` | Inspect one schema, episode, or raw event by its reference identifier. |
+| `slowave dashboard` | Start the local web dashboard at `127.0.0.1:8765`. |
+| `slowave forget sch_N` | Suppress a schema from all future retrieval. Human-only; there is no MCP equivalent. |
+| `slowave unforget sch_N` | Restore a previously suppressed schema. |
+| `slowave consolidate` | Run one replay and latent-consolidation pass synchronously. |
+| `slowave worker [--once]` | Run the background consolidation worker. Omit `--once` for the continuous loop. |
+| `slowave dedup-schemas [--apply]` | Preview exact duplicate schemas; add `--apply` to merge them. |
+| `slowave rebuild --force` | Force a rebuild of derived state from raw events. For support and debugging only. |
+| `slowave migrate-data [--dry-run] [--yes]` | Migrate legacy `~/.slowave` data to the native per-user root. |
+
+### dashboard
+
+The dashboard runs at `127.0.0.1:8765` by default and opens in the browser automatically.
+
+```bash
+slowave dashboard
+slowave dashboard --no-open   # headless host — don't open browser
+```
+
+### forget and unforget
+
+These commands are intentionally human-only. MCP has no equivalent because forgetting requires a human to review a specific memory, not an agent inferring intent.
+
+```bash
+slowave forget sch_42 --reason "Replaced by updated architecture decision"
+slowave unforget sch_42
+```
+
+<Warning>
+  Forgetting a generalized schema (one at `generalization_stage >= 1`) removes it from every scope that reuses it, not just the one in which you found it. The command prints a warning when this applies.
+</Warning>
+
+### worker
+
+The worker simulates slow-wave sleep: episodes accumulate during active sessions and are consolidated offline on a 5-minute interval by the installed service. Use `--once` to trigger a single pass manually.
+
+```bash
+slowave worker --once              # one consolidation pass, then exit
+slowave worker --interval 600      # consolidate every 10 minutes
+slowave worker --interval 3600 &   # background hourly consolidation
+```
+
+---
+
+## Setup and diagnostics
+
+| Command | Purpose |
+| --- | --- |
+| `slowave setup [--client C] [--dry-run]` | Configure MCP clients, lifecycle instructions, hooks, and services. |
+| `slowave doctor [--verbose]` | Verify the local environment: Python version, dependencies, embedding model, daemon, clients, and lifecycle version. |
+| `slowave serve start\|stop\|restart\|status` | Manage the HTTP MCP daemon. |
+
+### setup
+
+`setup` is idempotent and safe to re-run. Use `--dry-run` to preview all changes before writing.
+
+```bash
+slowave setup --dry-run
+slowave setup
+slowave setup --client claude-code
+slowave setup --client cursor --no-hooks
+```
+
+Supported `--client` values: `claude-code`, `claude-desktop`, `cline`, `cursor`, `windsurf`, `opencode`, `codex`, `all`.
+
+Additional flags:
+
+| Flag | Effect |
+| --- | --- |
+| `--no-worker` | Skip background worker service installation |
+| `--no-hooks` | Skip Claude Code and Codex enforcement hook installation |
+| `--dry-run` | Preview without writing any files |
+
+### doctor
+
+`doctor` checks every component and reports issues with actionable remediations.
+
+```bash
+slowave doctor
+slowave doctor --verbose
+slowave --json doctor
+```
+
+<Tip>
+  Run `slowave doctor --verbose 2>&1 | tee /tmp/slowave-doctor.log` to capture full diagnostics when filing a bug report.
+</Tip>
+
+### serve
+
+Manages the HTTP MCP daemon, which serves the `slowave_*` tools at `http://127.0.0.1:8766/mcp`.
+
+```bash
+slowave serve start
+slowave serve stop
+slowave serve restart
+slowave serve status
+slowave serve status --json
+```
+
+---
+
+## Backups, removal, and recovery
+
+| Command | Purpose |
+| --- | --- |
+| `slowave backup [--keep N]` | Create a gzip-compressed database snapshot. Safe while services run. |
+| `slowave restore <path>` | Stop the worker, swap the database, then restart. |
+| `slowave migrate-data [--dry-run] [--yes]` | Migrate a legacy `~/.slowave` installation to the native per-user root. |
+| `slowave uninstall [--dry-run]` | Remove MCP integrations, lifecycle instructions, hooks, and services. Preserves data. |
+| `slowave purge [--dry-run]` | Everything `uninstall` removes, plus local data in the runtime root. Database archives are retained. |
+
+`slowave cleanup` is a compatibility alias for `slowave purge`. Use `purge` in new scripts and documentation.
+
+<Warning>
+  `slowave purge` is destructive. It asks for confirmation at the terminal. Always run `--dry-run` first to verify the scope of removal.
+</Warning>
+
+After running `uninstall` or `purge`, remove the Python package separately with the same installer used to install it:
+
+```bash
+pipx uninstall slowave
+# or, if installed with Homebrew:
+brew uninstall slowave
+```

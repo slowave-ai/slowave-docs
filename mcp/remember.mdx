@@ -1,0 +1,180 @@
+---
+title: "slowave_remember: store durable typed claims in memory"
+description: "Use slowave_remember to persist typed facts, decisions, constraints, and lessons into long-term memory so they surface in future sessions and activations."
+sidebarTitle: "remember"
+---
+
+`slowave_remember` encodes a durable, typed claim into Slowave's long-term memory store. Unlike session events — which record transient task activity — a remembered claim is intended to survive across sessions and be surfaced by future activations and recalls. Call it any time during a task when you encounter a fact, decision, preference, constraint, lesson, or warning that a future agent session would genuinely benefit from knowing.
+
+## Scalar vs batch calling
+
+`slowave_remember` supports two calling patterns:
+
+- **Scalar**: pass `content` and `type` directly to store a single claim.
+- **Batch**: pass a `memories` list to store several claims in one round trip.
+
+The two forms are mutually exclusive. If `memories` is provided, `content` and `type` must be omitted; if `content` is provided, `memories` must be omitted.
+
+## Parameters
+
+<ParamField body="scope" type="string" required>
+  The scope in `kind:id` form. Must match the scope used in `slowave_activate` for the current session. Memory is stored under this scope and will only be retrieved within it (until the schema generalizes through cross-scope evidence over time).
+</ParamField>
+
+<ParamField body="session_id" type="string" required>
+  The active session identifier returned by `slowave_activate`. The session must exist, must not have been ended, and its scope must match the `scope` parameter.
+</ParamField>
+
+<ParamField body="content" type="string">
+  A single standalone durable claim. Must be nonblank. Mutually exclusive with `memories`. Express the claim as a self-contained sentence that would be meaningful without further context — Slowave stores it verbatim.
+</ParamField>
+
+<ParamField body="type" type="string">
+  The semantic category of the claim. Required when using the scalar form (with `content`). Must be one of the ten supported types:
+
+  | Type | Use for |
+  | --- | --- |
+  | `fact` | Objective truths about the codebase, system, or domain |
+  | `preference` | User or project style and tooling preferences |
+  | `decision` | Explicit choices made that should not be relitigated |
+  | `constraint` | Hard limits, rules, or non-negotiable requirements |
+  | `instruction` | Reusable directions for the agent (not one-off steps) |
+  | `lesson` | Insights learned from past work or failures |
+  | `warning` | Risks, sharp edges, or things that have caused problems |
+  | `open_question` | Unresolved questions worth tracking across sessions |
+  | `task` | A durable task or work item that persists across sessions |
+  | `artifact` | References to produced outputs, files, or deliverables |
+</ParamField>
+
+<ParamField body="occurred_at" type="string">
+  Optional RFC 3339 UTC timestamp representing when the event being recorded actually occurred, for example `2026-08-26T09:30:00Z`. Use this only when the claim describes an event that happened at a meaningfully different time from this MCP call — for example, when recording a decision that was made in a meeting earlier that day.
+
+  Slowave always sets its own internal raw-event `ts` to the time of the write call. The `occurred_at` value is stored as a separate source-event time and acts as a temporal signal, but it never changes the ordering of session events.
+</ParamField>
+
+<ParamField body="memories" type="array">
+  A batch list of claim objects to store in one call. Must be non-empty. Mutually exclusive with `content` and `type`. Each entry must contain `content` and `type`, and may optionally include `occurred_at`. All entries inherit the outer `scope` and `session_id`.
+
+  ```json
+  [
+    {
+      "content": "PostgreSQL is the required database for all production services.",
+      "type": "constraint"
+    },
+    {
+      "content": "Prefer connection pooling with pgBouncer over direct connections.",
+      "type": "preference"
+    },
+    {
+      "content": "Team decided to migrate off Redis for caching on 2026-08-01.",
+      "type": "decision",
+      "occurred_at": "2026-08-01T14:00:00Z"
+    }
+  ]
+  ```
+</ParamField>
+
+## Response
+
+### Scalar response
+
+<ResponseField name="stored" type="boolean">
+  `true` when the claim was successfully persisted.
+</ResponseField>
+
+<ResponseField name="memory_id" type="string">
+  The stable `sch_N` identifier for the newly created or matched memory record. Use this in `slowave_feedback` if the memory is later retrieved.
+</ResponseField>
+
+<ResponseField name="disposition" type="string">
+  `created` for a new record, or `matched` when an existing memory with identical content was found (reconsolidation is asynchronous).
+</ResponseField>
+
+<ResponseField name="type" type="string">
+  The canonical stored type, echoed back for confirmation.
+</ResponseField>
+
+<ResponseField name="scope" type="string">
+  The confirmed scope under which the memory was stored.
+</ResponseField>
+
+<ResponseField name="source_event_id" type="string">
+  The `evt_N` identifier of the raw event written to preserve source provenance.
+</ResponseField>
+
+### Batch response
+
+When `memories` is used, the response is `{"ok": true, "data": {"results": [...]}}` where each entry contains:
+
+<ResponseField name="index" type="integer">
+  The zero-based position of this item in the `memories` array.
+</ResponseField>
+
+<ResponseField name="ok" type="boolean">
+  `true` if this individual item was stored successfully; `false` if it failed.
+</ResponseField>
+
+<ResponseField name="data" type="object">
+  Present when `ok` is `true`. Same fields as the scalar response.
+</ResponseField>
+
+<ResponseField name="error" type="object">
+  Present when `ok` is `false`. Contains `code`, `message`, and `retryable`.
+</ResponseField>
+
+## What to store — and what not to
+
+`slowave_remember` is for **durable knowledge** that should be available in sessions weeks or months from now. Good candidates:
+
+- Architectural decisions (`decision`): "The team chose SQLite over Postgres for local deployments."
+- Hard rules (`constraint`): "All API endpoints must require authentication."
+- Lessons from failures (`lesson`): "Running migrations without a dry-run caused the 2026-07-15 data loss."
+- Persistent instructions (`instruction`): "Always run the integration test suite before opening a pull request."
+
+**Do not store** ephemeral task state — notes like "I just ran the linter" or "currently investigating function X" belong in session events, not in long-term memory. Slowave automatically records task activity through the session; `remember` is only for claims that deserve their own permanent record.
+
+<Note>
+  The `instruction` type is for reusable, standing directions. Use it for persistent preferences like "always prefer async/await over callbacks" — not for one-off steps in the current task. For execution-backed reusable methods, capture a `procedure` in `slowave_commit` instead.
+</Note>
+
+## Examples
+
+<CodeGroup>
+
+```json Scalar
+{
+  "scope": "project:my-repo",
+  "session_id": "sess_abc123",
+  "content": "The CI pipeline requires all tests to pass before merge, including slow integration tests.",
+  "type": "constraint"
+}
+```
+
+```json Batch
+{
+  "scope": "project:my-repo",
+  "session_id": "sess_abc123",
+  "memories": [
+    {
+      "content": "Use pnpm workspaces; npm install will break the monorepo lockfile.",
+      "type": "warning"
+    },
+    {
+      "content": "The auth service uses RS256 JWTs with a 15-minute expiry.",
+      "type": "fact"
+    }
+  ]
+}
+```
+
+```json With occurred_at
+{
+  "scope": "project:my-repo",
+  "session_id": "sess_abc123",
+  "content": "Agreed to deprecate the v1 API by end of Q3 2026.",
+  "type": "decision",
+  "occurred_at": "2026-07-30T10:00:00Z"
+}
+```
+
+</CodeGroup>

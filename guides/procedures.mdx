@@ -1,0 +1,128 @@
+---
+title: "Capture and reuse multi-step procedures with Slowave"
+description: "How execution-backed procedures are captured at commit, surfaced during activation, and refined through use and effect feedback over repeated sessions."
+sidebarTitle: "Procedures"
+---
+
+Remembered claims like facts and decisions capture what is true. Procedures capture how something was done — the ordered sequence of steps that successfully completed a specific kind of task. When an agent commits a procedure, Slowave stores it alongside the task's outcome and surfaces it in future activations where the same approach is relevant.
+
+## What a procedure is
+
+A procedure is an execution-backed record of a reusable method. It is distinct from a regular `instruction` memory: an instruction is a standing direction ("always run tests before pushing"), while a procedure is evidence of a specific approach that worked (or failed) in practice, complete with context, ordered steps, caveats, and an outcome.
+
+Procedures are evidence from past work, not instructions the agent must follow. The downstream model remains the decision-maker. A procedure retrieved during activation is context to reason about — not a script to execute blindly.
+
+<Note>
+  A failed procedure is not discarded. It remains available as cautionary evidence. When a procedure's outcome is `failure`, Slowave automatically appends a caveat: _"This procedure previously failed; treat it as cautionary evidence, not recommended guidance."_
+</Note>
+
+## How procedures are captured
+
+A procedure is attached to `slowave_commit` in the optional `procedure` field. The commit verb is the only way to record a procedure — they cannot be added mid-task through `slowave_remember`.
+
+The procedure object must include a `summary`, at least one `step`, and may include a `context` object and a list of `caveats`.
+
+```json
+{
+  "version": 2,
+  "summary": "Deploy a hotfix to production without a full release cycle",
+  "context": {
+    "environment": "production",
+    "deployment_type": "hotfix"
+  },
+  "steps": [
+    { "summary": "Create a hotfix branch from the last release tag" },
+    { "summary": "Apply the fix and run the full test suite locally" },
+    { "summary": "Open a pull request targeting the release branch" },
+    { "summary": "After approval, merge and trigger the deploy pipeline" },
+    { "summary": "Monitor error rates for 15 minutes post-deploy" }
+  ],
+  "caveats": [
+    "Skip only if the test suite is already green on the affected commit",
+    "Do not merge without at least one reviewer approval"
+  ]
+}
+```
+
+<Warning>
+  `procedure.version` defaults to `2` and may be omitted. If present, it must equal `2` — any other value is rejected. Procedures using the legacy v1 shape (with `retrieval_context` or `preconditions` fields) are not accepted.
+</Warning>
+
+## How procedures differ from remembered claims
+
+<CardGroup cols={2}>
+  <Card title="Remembered claims" icon="brain">
+    Standalone, typed facts stored through `slowave_remember`. Describe what is true: decisions, preferences, constraints, lessons. Not execution-backed. Recalled like any other memory.
+  </Card>
+
+  <Card title="Procedures" icon="list-check">
+    Execution-backed methods stored at commit time. Describe how something was done. Carry outcome, steps, caveats, and use/effect evidence. Surfaced separately from memories during activation.
+  </Card>
+</CardGroup>
+
+When activation returns its response, procedures appear in a dedicated `procedures` array — separate from the `memories` array — so the agent can clearly distinguish standing knowledge from actionable methods.
+
+## How activation surfaces procedures
+
+During `slowave_activate`, Slowave scores stored procedures against the current task using semantic similarity between the task description and each procedure's goal, summary, steps, caveats, and context. Procedures that clear the relevance threshold are included in the activation response as a compact preview.
+
+The preview always includes the `procedure_id`, `goal`, `summary`, `outcome`, and `outcome_summary`. Safety caveats are never omitted from the preview, even when the response is constrained by size. For the full step list, use `slowave_recall` or inspect the procedure in the dashboard.
+
+```json
+{
+  "procedure_id": "proc_sess_abc123",
+  "goal": "Deploy a hotfix to production without a full release cycle",
+  "summary": "Deploy a hotfix to production without a full release cycle",
+  "outcome": "success",
+  "outcome_summary": "Hotfix deployed and verified within 30 minutes.",
+  "caveats": [
+    "Skip only if the test suite is already green on the affected commit"
+  ]
+}
+```
+
+## Procedure feedback
+
+After using (or choosing not to use) a retrieved procedure, record its observed effect through `slowave_feedback`. Procedure feedback has two independent dimensions:
+
+**Use** — whether the procedure was consulted:
+
+- `used` — the procedure was followed, at least in part
+- `not_used` — the procedure was not followed
+
+**Effect** — what happened as a result (required when `use` is `used`):
+
+- `helped` — the procedure contributed to a successful outcome
+- `no_effect` — the procedure was used but made no difference
+- `harmed` — the procedure led to a worse outcome
+- `unknown` — the effect could not be determined
+
+When `use` is `used`, a `contribution` field is also required — a brief description of how the procedure influenced the task.
+
+```json
+{
+  "procedure_feedback": [
+    {
+      "procedure_id": "proc_sess_abc123",
+      "use": "used",
+      "effect": "helped",
+      "contribution": "Step 3 saved time by targeting the release branch directly"
+    }
+  ]
+}
+```
+
+<Tip>
+  Procedure feedback is how Slowave learns which methods are genuinely useful versus which ones are situational or harmful. A single `harmed` report carries more weight than two `helped` reports — safety evidence intentionally dominates endorsement.
+</Tip>
+
+## How feedback shapes future retrieval
+
+Procedure scores are adjusted by accumulated use evidence:
+
+- Each `helped` report adds a small bonus to the procedure's retrieval score (capped at three reports).
+- Each `harmed` report subtracts a penalty twice as large as the helped bonus (also capped at three reports).
+
+This means a procedure that consistently helps rises slightly in relevance. A procedure that harms drops more steeply. Repeated feedback cannot overwhelm semantic relevance — the evidence influence is bounded so a rarely-relevant but frequently-positive procedure does not beat a highly-relevant neutral one.
+
+Failed procedures remain in the store. They surface with the cautionary caveat, giving the agent the information to avoid repeating a known failure — without silently removing the historical record.

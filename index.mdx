@@ -1,0 +1,104 @@
+---
+title: "Slowave: Cross-Session Memory for AI Coding Agents"
+description: "Slowave is a local, brain-inspired memory layer that gives AI coding agents durable, cross-tool context — no LLM API key required, fully inspectable."
+sidebarTitle: "Introduction"
+---
+
+Slowave is a persistent memory layer for AI coding agents. Every new agent session has your codebase but not necessarily the context behind it — the decisions you made, the constraints you discovered, the approaches you already tried and rejected. Slowave closes that gap by giving your agents one local, shared memory store that persists across sessions and across different tools.
+
+When your agent encounters something worth preserving — a design decision, an architectural constraint, a hard-won lesson — it records a durable claim. On the next task, Slowave retrieves a compact, scoped set of relevant memories so your agent can act on what it already knows instead of starting from scratch. Feedback from your agent shapes which memories strengthen and which fade, so the memory layer improves the more you use it.
+
+## Key properties
+
+<CardGroup cols={2}>
+  <Card title="Local-first" icon="hard-drive">
+    Memory is stored in a local SQLite database and never sent to a hosted memory service. All retrieval and maintenance runs on your machine.
+  </Card>
+
+  <Card title="No LLM API key" icon="key">
+    Consolidation, retrieval, and ranking never require an LLM call. The memory core uses local embeddings and deterministic operations throughout.
+  </Card>
+
+  <Card title="Cross-tool" icon="arrows-split-up-and-left">
+    One memory store works across Claude Code, Codex, Cursor, Cline, Windsurf, OpenCode, and Claude Desktop. Switch clients without losing context.
+  </Card>
+
+  <Card title="Scoped" icon="filter">
+    Retrieval is bounded by a `kind:id` scope so memories from one project don't bleed into another. Scopes can generalize across related projects over time.
+  </Card>
+
+  <Card title="Inspectable" icon="magnifying-glass">
+    Review memories, retrievals, feedback, procedures, and system activity at any time using the local dashboard (`slowave dashboard`) or the CLI.
+  </Card>
+
+  <Card title="Improves with use" icon="arrow-trend-up">
+    Useful memories strengthen through positive feedback. Irrelevant or stale memories lose priority. Your agent's feedback drives the evolution of the memory store.
+  </Card>
+</CardGroup>
+
+## The problem Slowave solves
+
+Most AI tools treat memory as one of a few familiar patterns — a growing message transcript, a static note store, an LLM-generated summary, or a memory silo locked inside a single tool. Each approach has real drawbacks: transcripts grow with conversation length, static stores don't adapt, LLM-generated summaries require model calls and are hard to inspect, and tool-specific silos disappear the moment you switch clients.
+
+Slowave takes a different path. It treats memory as a local adaptive system: incoming events are encoded, associated, reinforced, weakened, revised, consolidated, and retrieved before they are verbalized. Instead of replaying entire histories into every prompt, it returns a compact working-memory brief for the current task — just what is relevant, scoped to the current project, and shaped by past feedback.
+
+The practical payoff is that you stop reconstructing the same context across sessions. A constraint you explained once can be recalled automatically on the next task, whether you're using the same tool or a different one.
+
+## Supported clients
+
+Client coverage is actively expanding. `slowave setup` detects and configures all clients it finds on your machine automatically.
+
+| Client | macOS | Linux | Windows | Setup command |
+| --- | --- | --- | --- | --- |
+| Claude Code | ✅ | ✅ | ✅ | `slowave setup --client claude-code` |
+| Cline | ✅ | ✅ | ✅ | `slowave setup --client cline` |
+| Cursor | ✅ | ✅ | ✅ | `slowave setup --client cursor` ¹ |
+| Windsurf | ✅ | ✅ | ✅ | `slowave setup --client windsurf` |
+| Claude Desktop | ✅ | ✅ | ✅ | `slowave setup --client claude-desktop` ¹ |
+| OpenCode | ✅ | ✅ | ✅ | `slowave setup --client opencode` |
+| Codex | ✅ | ✅ | ✅ | `slowave setup --client codex` |
+| All detected |  |  |  | `slowave setup` |
+
+¹ Requires one manual paste after setup — `slowave setup` prints the exact text and destination.
+
+<Note>
+  ✅ = manually verified · ⬜ = pending verification
+</Note>
+
+## How it fits into your workflow
+
+Slowave is transparent to your normal work. You still ask your agent to fix a regression, add a migration, or review a pull request. The installed lifecycle instructions tell your agent when to activate Slowave at the start of a task, remember durable facts as it works, recall additional context mid-task, give feedback on what was retrieved, and commit an outcome when the task is done.
+
+What you will see while working:
+
+- Your agent activating Slowave for the current task and goal.
+- Slowave retrieving relevant context back to your agent.
+- Your agent sending feedback on what was retrieved.
+- Your agent committing the Slowave session at the end of a task.
+
+Optionally:
+
+- Your agent invoking Slowave to explicitly remember a durable fact.
+- Your agent invoking Slowave to recall something critical mid-task.
+
+Slowave does not decide whether a claim is true or important. Your agent makes that judgment and reports whether retrieved memory helped, was irrelevant, or became stale. Slowave maintains the resulting local memory store.
+
+## How Slowave relates to the MCP lifecycle
+
+Slowave exposes five MCP tools — `slowave_activate`, `slowave_remember`, `slowave_recall`, `slowave_feedback`, and `slowave_commit` — that map to a five-verb cognitive cycle. The lifecycle instructions installed by `slowave setup` tell your agent exactly when and how to call each tool.
+
+The HTTP MCP daemon starts automatically as a system service and serves all five tools at `http://127.0.0.1:8766/mcp`. Every configured client connects to the same local daemon, which means all your tools share one memory store without any manual wiring.
+
+<CardGroup cols={2}>
+  <Card title="Get started" icon="rocket" href="/quickstart">
+    Install Slowave, run setup, and walk through your first agent task in under 5 minutes.
+  </Card>
+
+  <Card title="How it works" icon="brain" href="/how-it-works">
+    Understand the five-verb MCP lifecycle, memory types, and background consolidation in depth.
+  </Card>
+</CardGroup>
+
+<Warning>
+  Slowave is public beta software. APIs, configuration, and storage schema may change, and migrations are not guaranteed before stable release. The local SQLite database is plaintext by default — protect it with OS permissions or full-disk encryption.
+</Warning>

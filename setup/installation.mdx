@@ -1,0 +1,142 @@
+---
+title: "Install Slowave with pipx or Homebrew, then run setup"
+description: "Install Slowave via pipx or Homebrew, preview changes with --dry-run, run slowave setup to wire every detected client, and verify with slowave doctor."
+sidebarTitle: "Installation"
+---
+
+Slowave is a local, brain-inspired memory layer that gives AI coding agents durable context across sessions. Installing Slowave takes two steps: getting the package onto your machine and running `slowave setup` to connect it to every AI client you already have installed. Setup is idempotent — it is always safe to re-run, and it only touches clients whose config directories already exist.
+
+## Prerequisites
+
+Slowave requires **Python 3.11 or later**. Verify your version before installing:
+
+```bash
+python --version
+```
+
+## Install the package
+
+Choose the installation method that matches your workflow. Both methods install the same package; `pipx` isolates Slowave in its own virtual environment, while Homebrew uses a pre-built formula.
+
+<CodeGroup>
+
+```bash pipx
+pipx install slowave
+```
+
+```bash Homebrew
+brew tap mrsalty/slowave https://github.com/mrsalty/slowave
+brew install slowave
+```
+
+</CodeGroup>
+
+<Note>
+  The default embedding model downloads from Hugging Face on first use (~45 MB) and is cached locally. All subsequent runs work offline.
+</Note>
+
+## Run setup
+
+<Steps>
+  <Step title="Preview what will change">
+    Run the dry-run flag first to see every file that `slowave setup` will touch — no changes are written.
+
+    ```bash
+    slowave setup --dry-run
+    ```
+
+    The output lists MCP config patches, lifecycle blocks, enforcement hooks, and service files grouped by client. Manual steps required for Cursor and Claude Desktop are also printed here.
+  </Step>
+  <Step title="Apply the configuration">
+    Run setup without flags to apply everything:
+
+    ```bash
+    slowave setup
+    ```
+
+    Setup configures every detected client in one pass. It patches MCP configs, injects lifecycle instruction blocks, installs enforcement hooks for Claude Code and Codex, and installs the HTTP daemon, background worker, and daily backup as system services.
+
+    To configure a single client instead of all detected ones:
+
+    ```bash
+    slowave setup --client claude-code
+    ```
+
+    Available values for `--client`: `claude-code`, `claude-desktop`, `cline`, `cursor`, `windsurf`, `opencode`, `codex`, `all`.
+  </Step>
+  <Step title="Verify the result">
+    Run `slowave doctor` to confirm the daemon is healthy and clients are detected:
+
+    ```bash
+    slowave doctor
+    ```
+
+    Doctor prints the detected clients, configuration status, daemon health, and the effective runtime root.
+  </Step>
+</Steps>
+
+## What `slowave setup` does
+
+`slowave setup` performs four categories of work for every detected client:
+
+| Action | Clients | Detail |
+| --- | --- | --- |
+| MCP config | All | Patches each client's MCP config so `slowave_*` tools appear |
+| Lifecycle instructions | Claude Code, Cline, Windsurf, OpenCode, Codex | Injects the mandatory Slowave block automatically |
+| Lifecycle instructions | Claude Desktop, Cursor | Prints the block to paste — requires one manual step |
+| Enforcement hooks | Claude Code, Codex | Adds `UserPromptSubmit` + `Stop` hooks so the client calls Slowave every turn |
+| HTTP daemon | All | Installs as launchd / systemd / Task Scheduler — auto-starts |
+| Background worker | All | Installs as launchd / systemd / Task Scheduler — consolidates events |
+| Daily backup | All | Installs as launchd / systemd / Task Scheduler — gzip snapshot of the database |
+
+### Setup options
+
+```text
+slowave setup --client [claude-code|claude-desktop|cline|cursor|opencode|windsurf|codex|all]
+              --no-worker       # skip worker service install
+              --no-hooks        # skip Claude Code / Codex hooks
+              --dry-run         # preview without writing
+```
+
+## Client detection
+
+`slowave setup` only configures clients it detects on your machine. Detection checks whether each client's config directory exists — if the directory is not present, that client is silently skipped.
+
+| Client | Detected when |
+| --- | --- |
+| Claude Code | `~/.claude/` exists |
+| Claude Desktop | `~/Library/Application Support/Claude/` (macOS) or equivalent exists |
+| Cline | `~/.cline/` (CLI/TUI) or `~/Library/Application Support/Code/.../cline_mcp_settings.json` parent exists |
+| Cursor | `~/.cursor/` exists |
+| OpenCode | `~/.config/opencode/` exists |
+| Windsurf | `~/.codeium/windsurf/` exists |
+| Codex | `~/.codex/` (or `$CODEX_HOME`) exists |
+
+Clients not detected are omitted from the setup output entirely.
+
+## Backup files
+
+Before overwriting any existing config file, `slowave setup` creates a timestamped backup next to the original:
+
+```text
+~/.claude.json.bak.20260611_142300
+~/.claude/settings.json.bak.20260611_142300
+~/.claude/CLAUDE.md.bak.20260611_142300
+```
+
+<Tip>
+  Only one backup per file is kept. Re-running setup replaces the previous backup. To restore a file manually, copy the timestamped backup back over the original: `cp ~/.claude.json.bak.20260611_142300 ~/.claude.json`
+</Tip>
+
+`slowave purge` removes all `*.bak.*` files. The backup path for each file is printed during setup.
+
+## What setup never touches
+
+| Never touched | Why |
+| --- | --- |
+| Python packages | Installed via pip/pipx — no auto-upgrades |
+| Shell profiles (`.bashrc`, `.zshrc`, etc.) | No PATH modifications |
+| System-wide configs (`/etc`, `/usr/local`) | User-scoped only |
+| VSCode/Cursor `settings.json` | Only Cline's dedicated MCP settings file |
+| Claude Desktop Custom Instructions | Server-side, cannot be automated |
+| Existing file content (outside markers) | Lifecycle blocks use markers |

@@ -1,0 +1,110 @@
+---
+title: "Inspect and manage memory with the local dashboard"
+description: "Browse the local web dashboard to inspect memories, schemas, procedures, retrievals, and activity — use Forget and Unforget to manage what agents recall."
+sidebarTitle: "Dashboard"
+---
+
+The Slowave dashboard is a locally served web UI that gives you a human-readable view into everything stored in your memory database. It runs entirely on your machine, reads directly from the local SQLite file, and requires no cloud account or API key. It is the primary tool for inspecting what agents have learned, spotting stale or incorrect memories, and manually suppressing anything that should not surface in future sessions.
+
+## Starting the dashboard
+
+Run `slowave dashboard` from any terminal. It starts a server on `127.0.0.1:8765` by default and opens the URL in your default browser automatically.
+
+```bash
+slowave dashboard
+```
+
+To change the port:
+
+```bash
+slowave dashboard --port 9000
+```
+
+To start the server without opening a browser (useful on a headless host or in a script):
+
+```bash
+slowave dashboard --no-open
+```
+
+<Note>
+  The dashboard is intended for localhost use only. Binding to a non-loopback host will print a warning because doing so may expose private memories on your local network.
+</Note>
+
+## Dashboard sections
+
+The dashboard is organized into several views. Use the sidebar to navigate between them.
+
+| Section | What it shows |
+| --- | --- |
+| **Home** | An at-a-glance summary: active memory count, recent changes, attention items (stale memories, failed worker runs, incomplete feedback), and the activity pulse chart. |
+| **Memory** | The full list of schemas (durable memory records), filterable by status, scope, and content. Click any schema to see its evidence, retrieval history, feedback, and relations. |
+| **Procedures** | All captured procedures, with their summaries, steps, caveats, outcomes, and accumulated use/effect evidence. |
+| **Retrieval** | A log of every activation and recall event: what was queried, what was returned, and what feedback was later recorded against each result. |
+| **Activity** | Closed sessions with their goals, outcomes, episode counts, and feedback status. Useful for auditing task history. |
+| **Graph** | A force-directed visualization of schema nodes and their `relates_to` edges. Filter by scope, status, and salience range. |
+| **Diagnostics** | Database health (integrity check, WAL size, table counts), daemon status, worker run history, and generalization stage distribution. |
+
+## Reading the Memory view
+
+Each schema row shows its content, scope, status (`active`, `stale`, `needs_review`, `archived`, or `forgotten`), salience score, confidence, and how many times it has been exposed and used. Sort by any column to find frequently-used memories, recently updated records, or low-salience items at risk of fading.
+
+Clicking into a schema opens its detail view, where you can see:
+
+- The raw evidence that supports it (episodes and raw events)
+- Every retrieval it has appeared in, with the associated feedback
+- Outgoing and incoming `relates_to` relations
+- Co-activation edges from usage patterns
+- The suppression audit log, if it has ever been forgotten or unforgotten
+
+## Forget and Unforget
+
+The dashboard exposes two mutating actions: **Forget** and **Unforget**. These are visible on each schema's detail page.
+
+- **Forget** sets the schema's status to `forgotten` and removes it from all future retrieval. The source evidence is preserved and the action is logged with a timestamp and optional reason.
+- **Unforget** reverses a previous forget, restoring the schema to its prior status.
+
+<Warning>
+  Forgetting a generalized schema (one that has been promoted beyond `scoped` stage) removes it from retrieval across every scope that reuses it, not just the origin scope. The dashboard displays a warning when this applies.
+</Warning>
+
+These actions are enabled by default. To start a strictly read-only dashboard where Forget and Unforget are disabled:
+
+```bash
+slowave dashboard --no-allow-actions
+```
+
+There is no agent-facing MCP equivalent. Forgetting is a human decision made after inspecting a specific memory.
+
+## Reading the Database Health section
+
+The Diagnostics page includes a **Database Health** panel that reports the results of a live SQLite integrity check plus storage metrics.
+
+<Accordion title="What does the integrity check cover?">
+  Slowave runs `PRAGMA integrity_check` against the database when you load the Diagnostics page. A result of `ok` means the file is structurally sound. Any other result — for example, after an unclean shutdown or disk error — is reported as `needs_attention` and also appears as an attention item on the Home page. If the integrity check is not `ok`, stop writing to the database and restore from a backup created with `slowave backup`.
+</Accordion>
+
+The panel also shows:
+
+- **File size** and WAL/SHM auxiliary file sizes
+- **Page utilization** — the ratio of used to allocated pages (high free-page counts suggest the database could benefit from `VACUUM`)
+- **Table row counts** — raw events, episodes, prototypes, schemas, feedback events, and relations
+- **Object counts** — tables, indexes, and views in the schema
+
+## Headless and scripted usage
+
+The dashboard is safe to run continuously alongside agent workloads. It only reads from the database during normal browsing; Forget and Unforget are the only writes it makes.
+
+```bash
+# Start on a custom port, skip browser open
+slowave dashboard --port 8888 --no-open
+
+# Read-only mode — Forget/Unforget buttons are disabled
+slowave dashboard --no-allow-actions
+
+# Check that it started correctly
+slowave status
+```
+
+<Tip>
+  If you see `Port 8765 is already in use`, another dashboard instance may already be running. Open `http://127.0.0.1:8765` in your browser to confirm, or stop the existing process with `pkill -f 'slowave dashboard'` before relaunching.
+</Tip>

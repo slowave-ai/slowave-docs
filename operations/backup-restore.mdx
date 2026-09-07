@@ -1,0 +1,166 @@
+---
+title: "Slowave database backup, restore, and migration guide"
+description: "How to create, schedule, and restore gzip-compressed SQLite snapshots of your Slowave memory database, including legacy migration from ~/.slowave."
+sidebarTitle: "Backup & Restore"
+---
+
+Slowave stores every memory in a local SQLite database. Because that database is the sole source of your agent's persistent knowledge, taking regular backups is strongly recommended. The built-in backup command uses SQLite's online backup API, which means it can run safely while the daemon and worker are active — no need to stop services first.
+
+## Runtime data location
+
+Slowave isolates runtime data under the OS user's native application-data directory. The database, PID file, logs, and backup archive all live beneath this root.
+
+| Platform | Default runtime root |
+| --- | --- |
+| macOS | `~/Library/Application Support/slowave` |
+| Linux / Unix | `$XDG_DATA_HOME/slowave` (typically `~/.local/share/slowave`) |
+| Windows | `%LOCALAPPDATA%\slowave` |
+
+Run `slowave doctor` to print the effective root and database path for your current environment.
+
+To relocate the complete runtime tree, set `SLOWAVE_HOME` before starting any Slowave process. See [Configuration](/operations/configuration) for all environment variable options.
+
+---
+
+## Creating a backup
+
+The `backup` command writes a gzip-compressed snapshot of the live database into the `backups/` subdirectory of the runtime root.
+
+```bash
+slowave backup
+```
+
+To retain a specific number of snapshots (the default is 7):
+
+```bash
+slowave backup --keep 14
+```
+
+Each snapshot is named after the UTC timestamp at creation time:
+
+```text
+<runtime-root>/backups/slowave-YYYYMMDD_HHMMSS.db.gz
+```
+
+<Note>
+  Backup uses the SQLite online backup API and is safe to run while the daemon and worker are active. It does not lock or pause either service.
+</Note>
+
+### Automatic daily backups
+
+`slowave setup` installs a daily backup service alongside the daemon and worker. The service creates one snapshot per day and prunes older archives automatically according to the `--keep` value (or `SLOWAVE_BACKUP_KEEP`).
+
+| Platform | Service |
+| --- | --- |
+| macOS | `~/Library/LaunchAgents/com.slowave.backup.plist` |
+| Linux | `~/.config/systemd/user/slowave-backup.timer` |
+| Windows | Task Scheduler: `SlowaveBackup` |
+
+---
+
+## Restoring from a backup
+
+<Warning>
+  Restoring replaces your live database with the snapshot. All memories recorded after the backup was taken will be lost. Review the target backup carefully before proceeding.
+</Warning>
+
+```bash
+slowave restore /path/to/runtime/backups/slowave-YYYYMMDD_HHMMSS.db.gz
+```
+
+The restore process follows these steps automatically:
+
+<Steps>
+  <Step title="Stop daemon and worker">
+    The HTTP MCP daemon is stopped if it is running. The background worker is also terminated to prevent any writes during the swap.
+  </Step>
+  <Step title="Clear WAL sidecar files">
+    Stale SQLite sidecar files (`-wal`, `-shm`, `-journal`) are removed so they do not contaminate the restored database.
+  </Step>
+  <Step title="Atomically replace the database">
+    The compressed snapshot is decompressed into a temporary file in the same directory as the live database, then atomically renamed into place. The restore validates the result with a basic SQLite integrity read before completing.
+  </Step>
+</Steps>
+
+If the restore fails partway through, the original database is preserved at `<db-path>.bak` so you can recover manually. On a successful restore the `.bak` is removed.
+
+If the restored database was created by an older Slowave version, the engine will perform an automatic rebuild the next time it starts — replaying raw events to reconstruct derived state. This rebuild can take several minutes for large databases and is a normal, one-time cost.
+
+After a successful restore, restart the daemon manually:
+
+```bash
+slowave serve start
+```
+
+Add `--yes` only in unattended scripts where you are certain about the target path:
+
+```bash
+slowave restore /path/to/backup.db.gz --yes
+```
+
+---
+
+## Migrating from a legacy `~/.slowave` installation
+
+Older Slowave installations stored data in `~/.slowave`. The `migrate-data` command moves this data to the native per-user root through a staged SQLite online backup and integrity check.
+
+<Steps>
+  <Step title="Preview the migration">
+    Run a dry run to see exactly what will be moved and where, without writing any files.
+
+    ```bash
+    slowave migrate-data --dry-run
+    ```
+  </Step>
+  <Step title="Run the migration">
+    Execute the migration. The command will ask for confirmation unless `--yes` is supplied.
+
+    ```bash
+    slowave migrate-data
+    ```
+
+    Migration stops the legacy daemon if one is running, copies the SQLite database through the online backup API, validates `PRAGMA integrity_check`, then promotes the staged directory to the new root.
+  </Step>
+  <Step title="Verify the result">
+    Confirm the new installation is healthy.
+
+    ```bash
+    slowave doctor
+    ```
+  </Step>
+</Steps>
+
+<Note>
+  Migration refuses to proceed if the destination is non-empty. It always preserves the `~/.slowave` source tree intact so you can roll back by stopping the new daemon and running commands with `SLOWAVE_HOME=~/.slowave` (or pointing `SLOWAVE_DB` at the exact legacy database path).
+</Note>
+
+---
+
+## Backup configuration
+
+The backup directory and retention count can be overridden with environment variables:
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `SLOWAVE_BACKUP_DIR` | `<runtime-root>/backups` | Directory where backup archives are written |
+| `SLOWAVE_BACKUP_KEEP` | `7` | Number of backup archives to retain |
+
+These variables are read by both the manual `slowave backup` command and the scheduled service installed by `slowave setup`.
+
+---
+
+## Troubleshooting backup failures
+
+If the scheduled backup fails, check the backup error log:
+
+```bash
+cat /tmp/slowave-backup.err
+```
+
+Run a manual backup to confirm the issue is reproducible:
+
+```bash
+slowave backup
+```
+
+For restore failures, see the [Troubleshooting](/operations/troubleshooting) guide.

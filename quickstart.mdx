@@ -1,0 +1,183 @@
+---
+title: "Quickstart: Install and Configure Slowave in 5 Minutes"
+description: "Install Slowave, configure your AI coding clients, verify the setup, and watch your agent build durable project memory from its very first task."
+sidebarTitle: "Quickstart"
+---
+
+Slowave installs in a single command and configures every detected AI coding client automatically. This guide walks you from a fresh install to your first agent task with active memory in about five minutes. By the end, your agent will activate Slowave at the start of each task, remember durable facts as it works, and commit a session outcome — all without any changes to how you normally prompt it.
+
+## Prerequisites
+
+- Python 3.11 or later (for `pipx` install) **or** Homebrew (for the Homebrew tap)
+- At least one supported AI coding client already installed on your machine
+
+<Note>
+  **No LLM API key required.** Slowave's memory core uses local embeddings and deterministic operations. It never calls an external LLM for retrieval or maintenance.
+</Note>
+
+## Installation and setup
+
+<Steps>
+  ### Install Slowave
+
+  Choose the method that matches your toolchain:
+
+  <Tabs>
+    <Tab title="pipx (recommended)">
+      ```bash theme={null}
+      pipx install slowave
+      ```
+    </Tab>
+
+    <Tab title="Homebrew">
+      ```bash theme={null}
+      brew tap mrsalty/slowave https://github.com/mrsalty/slowave
+      brew install slowave
+      ```
+    </Tab>
+  </Tabs>
+
+  `pipx` installs Slowave in its own isolated environment and puts the `slowave` command on your PATH. Homebrew installs it as a standard formula.
+
+  ### Preview what setup will change
+
+  Before making any changes, run setup in dry-run mode to see exactly what `slowave setup` will do on your machine:
+
+  ```bash theme={null}
+  slowave setup --dry-run
+  ```
+
+  The dry run prints every action — which MCP configs will be patched, which lifecycle instruction files will be updated, which system services will be registered — without writing anything. Review the output, then proceed when you're ready.
+
+  ### Run setup
+
+  ```bash theme={null}
+  slowave setup
+  ```
+
+  `slowave setup` detects every supported AI coding client on your machine and configures each one. It is idempotent and safe to re-run. For each detected client it:
+
+  * Patches the client's MCP config so the `slowave_*` tools appear.
+  * Injects lifecycle instructions that tell your agent when to call each tool.
+  * Installs enforcement hooks where supported (Claude Code, Codex).
+  * Registers the HTTP MCP daemon, background worker, and daily backup as system services.
+
+  <Tip>
+    To configure a single client instead of all detected ones, use `slowave setup --client <name>`. For example: `slowave setup --client claude-code`.
+  </Tip>
+
+  Before overwriting any config file, `slowave setup` creates a timestamped backup next to the original (for example `~/.claude.json.bak.20260611_142300`). The backup path is printed during setup.
+
+  **If you use Cursor or Claude Desktop:** these clients require one manual paste after setup because their instruction surfaces cannot be modified programmatically. `slowave setup` prints the exact text and the destination path.
+
+  ### Verify the installation
+
+  ```bash theme={null}
+  slowave doctor
+  ```
+
+  `slowave doctor` checks daemon health, client detection, and config status. A healthy setup looks like this:
+
+  ```text theme={null}
+  ✅  daemon      running at http://127.0.0.1:8766/mcp
+  ✅  worker      running
+  ✅  claude-code  configured
+  ✅  cline        configured
+  ✅  cursor       configured
+  ```
+
+  Any ❌ items include a short explanation and a suggested fix. If you see nothing unexpected, you're ready to use Slowave.
+</Steps>
+
+## Supported clients
+
+`slowave setup` only configures clients it detects on your machine. Detection checks whether each client's config directory exists.
+
+| Client | Detection heuristic | Manual step after setup? |
+| --- | --- | --- |
+| Claude Code | `~/.claude/` exists | No |
+| Cline | `~/.cline/` or VS Code extension path exists | No |
+| Windsurf | `~/.codeium/windsurf/` exists | No |
+| OpenCode | `~/.config/opencode/` exists | No |
+| Codex | `~/.codex/` exists | No |
+| Cursor | `~/.cursor/` exists | Yes — paste lifecycle instructions |
+| Claude Desktop | Platform app-support path exists | Yes — paste lifecycle instructions |
+
+## Your first agent task
+
+Once setup completes, your agent will automatically follow the Slowave lifecycle. Here's what happens during a typical task:
+
+<Steps>
+  ### Agent activates Slowave
+
+  At the start of every task, your agent calls `slowave_activate` with the task description, a concise goal, and a scope (for example `project:my-api`). Slowave opens a session and returns any relevant memories it already has for that scope.
+
+  On first use the response will be a cold start — no memories exist yet for the project. Your agent should read a stable context document (such as a README or architecture doc), preserve any durable facts it finds, and then continue normally.
+
+  ### Agent works and remembers durable facts
+
+  As your agent works, the lifecycle instructions tell it to call `slowave_remember` whenever it encounters something worth preserving across sessions — a design decision, an operational constraint, a preference, a lesson learned. For example:
+
+  ```python theme={null}
+  slowave_remember(
+    scope="project:my-api",
+    session_id="<session returned by activate>",
+    content="The database uses optimistic locking; never issue bare UPDATE without a version check.",
+    type="constraint"
+  )
+  ```
+
+  Valid memory types are: `fact`, `preference`, `decision`, `constraint`, `instruction`, `lesson`, `warning`, `open_question`, `task`, `artifact`.
+
+  <Note>
+    `slowave_remember` is for durable knowledge that should persist across sessions. Ephemeral task state belongs in session events, not in long-term memory.
+  </Note>
+
+  ### Agent recalls context mid-task (optional)
+
+  If the question changes mid-task or activation didn't surface enough context, your agent can call `slowave_recall` with a natural-language query:
+
+  ```python theme={null}
+  slowave_recall(
+    query="What locking strategy does this project use?",
+    session_id="<active session>",
+    scope="project:my-api"
+  )
+  ```
+
+  ### Agent sends feedback on retrieved memories
+
+  After using memories from `activate` or `recall`, your agent calls `slowave_feedback` to report what actually helped. Each retrieved memory gets an assessment of `used`, `irrelevant`, or `stale`. This feedback shapes how Slowave ranks those memories in future sessions.
+
+  ### Agent commits the session
+
+  At the end of every task, your agent calls `slowave_commit` with the final goal, outcome (`success`, `partial`, or `failure`), a summary, and a verification record. This closes the session and triggers offline memory consolidation.
+
+  If the agent produced a clear reusable method during the task, it can also capture a procedure with a summary, context, ordered steps, and caveats — Slowave will surface it when a future task looks similar.
+</Steps>
+
+## Open the dashboard
+
+After a few tasks, open the local dashboard to inspect what Slowave has learned about your project:
+
+```bash
+slowave dashboard
+```
+
+The dashboard opens in your browser and lets you review memories, retrievals, feedback history, procedures, activity logs, and system health — all stored locally.
+
+## What to do next
+
+<CardGroup cols={2}>
+  <Card title="Installation reference" icon="book" href="/setup/installation">
+    Full reference for per-client setup, manual steps, files modified, service management, runtime data location, and removal.
+  </Card>
+
+  <Card title="How it works" icon="brain" href="/how-it-works">
+    Deep-dive into the five-verb MCP lifecycle, memory types, background consolidation, and how salience and feedback evolve memory over time.
+  </Card>
+</CardGroup>
+
+<Warning>
+  The default embedding model downloads from Hugging Face on first use (approximately 45 MB). It is cached locally after that, and all subsequent runs work offline.
+</Warning>

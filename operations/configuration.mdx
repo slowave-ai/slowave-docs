@@ -1,0 +1,117 @@
+---
+title: "Slowave configuration and environment variable reference"
+description: "All environment variables that control Slowave's runtime data location, HTTP daemon, backup retention, session timeouts, and native library compatibility."
+sidebarTitle: "Configuration"
+---
+
+Slowave is designed to work without any configuration on a freshly installed machine — it discovers a sensible runtime root automatically using the OS user's native application-data directory. When you need to relocate data, change ports, tune timeouts, or work around native library conflicts, environment variables give you fine-grained control over every runtime aspect of Slowave.
+
+## Runtime data location
+
+Slowave isolates all runtime artifacts under a single per-user root directory. The database, daemon PID file, logs, backup archives, and setup sentinel all live beneath this root. The default varies by operating system:
+
+| Platform | Default runtime root |
+| --- | --- |
+| macOS | `~/Library/Application Support/slowave` |
+| Linux / Unix | `$XDG_DATA_HOME/slowave` (typically `~/.local/share/slowave`) |
+| Windows | `%LOCALAPPDATA%\slowave` |
+
+Run `slowave doctor` at any time to print the effective root and database path for your current environment.
+
+---
+
+## Environment variables
+
+The table below covers every variable that Slowave reads. Variables with no default must be set explicitly; variables with a default apply that value when the variable is absent.
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `SLOWAVE_HOME` | Native per-user application-data root | Relocates the complete runtime tree to the specified directory. Use this for CI, containers, portable installs, or operator-managed deployments. |
+| `SLOWAVE_DB` | — | **Legacy.** Sets an exact SQLite database file path. The file's parent directory becomes the runtime root. Use `SLOWAVE_HOME` for new setups. |
+| `SLOWAVE_MCP_HTTP_PORT` | `8766` | TCP port the HTTP MCP daemon listens on. The daemon serves `slowave_*` tools at `http://<host>:<port>/mcp`. |
+| `SLOWAVE_MCP_HOST` | `127.0.0.1` | Bind host for the HTTP MCP daemon. The default restricts the daemon to loopback only. |
+| `SLOWAVE_DAEMON_PID` | `<runtime-root>/daemon.pid` | Exact path for the daemon PID file. |
+| `SLOWAVE_SESSION_IDLE_TIMEOUT` | `3600` | Number of seconds of inactivity before an open session is considered idle. |
+| `SLOWAVE_BACKUP_DIR` | `<runtime-root>/backups` | Directory where gzip-compressed database snapshots are written. |
+| `SLOWAVE_BACKUP_KEEP` | `7` | Number of backup archives to retain. Older snapshots are pruned automatically. |
+| `KMP_DUPLICATE_LIB_OK` | — | Set to `TRUE` on macOS **only** if FAISS and ONNX Runtime otherwise cause a segfault due to duplicate OpenMP libraries. |
+
+---
+
+## Choosing between SLOWAVE_HOME and SLOWAVE_DB
+
+<Warning>
+  `SLOWAVE_HOME` and `SLOWAVE_DB` cannot be set at the same time. Slowave raises a `RuntimePathError` immediately if both are present. Unset one of them.
+</Warning>
+
+<CardGroup cols={2}>
+  <Card title="SLOWAVE_HOME (recommended)" icon="folder">
+    Moves the **complete runtime tree** — database, PID file, logs, backups, and sentinel — to the directory you specify. This is the right choice for CI, Docker containers, multi-user servers, and any installation where you want full control over where Slowave stores data.
+
+    ```bash
+    export SLOWAVE_HOME=/data/slowave
+    slowave doctor
+    ```
+  </Card>
+
+  <Card title="SLOWAVE_DB (legacy)" icon="database">
+    Points Slowave at a specific SQLite file and uses its parent directory as an ad-hoc runtime root. This exists for backward compatibility with scripts that pre-date `SLOWAVE_HOME`. For new setups, prefer `SLOWAVE_HOME`.
+
+    ```bash
+    export SLOWAVE_DB=/opt/shared/slowave.db
+    slowave doctor
+    ```
+  </Card>
+</CardGroup>
+
+---
+
+## The --db flag
+
+In addition to environment variables, every CLI command accepts a `--db` flag that overrides the database path for that single invocation. This is convenient for one-off inspections of a specific database file without affecting the rest of your environment:
+
+```bash
+slowave --db /path/to/other.db status
+slowave --db /path/to/other.db schema
+```
+
+The `--db` flag applies only to the CLI. The running daemon always uses the path resolved from the environment at startup.
+
+---
+
+## Port assignment
+
+Slowave assigns port numbers lazily. The first time the daemon or dashboard starts, it scans loopback ports from the base value upward (starting at `8766` for the daemon and `8765` for the dashboard) and persists the first available port to a file in the runtime root (`daemon.port` and `dashboard.port`, respectively). Subsequent starts reuse the persisted port.
+
+To pin a port explicitly, set the environment variable before starting the daemon:
+
+```bash
+export SLOWAVE_MCP_HTTP_PORT=9000
+slowave serve start
+```
+
+---
+
+## KMP_DUPLICATE_LIB_OK
+
+On macOS, FAISS and ONNX Runtime can bundle different versions of the OpenMP runtime. When loaded in the same process they may trigger a hard abort. The CLI sets `KMP_DUPLICATE_LIB_OK=TRUE` automatically at startup to prevent this. If you invoke Slowave's Python internals directly from your own code, you may need to set this variable before any imports:
+
+```bash
+export KMP_DUPLICATE_LIB_OK=TRUE
+```
+
+Do not set this variable on Linux or Windows unless you have independently confirmed the same conflict exists in your environment.
+
+---
+
+## Example: CI or container setup
+
+In a Docker container or CI runner, use `SLOWAVE_HOME` to place all Slowave data in a predictable, writable directory:
+
+```bash
+export SLOWAVE_HOME=/tmp/slowave-ci
+slowave setup --dry-run
+slowave doctor
+```
+
+This keeps the container image clean and allows you to mount or discard the runtime data as needed between runs.

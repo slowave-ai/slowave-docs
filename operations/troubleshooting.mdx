@@ -1,0 +1,403 @@
+---
+title: "Troubleshoot common Slowave installation and runtime issues"
+description: "Solutions for Slowave daemon failures, worker stalls, dashboard problems, client integration, and database errors — always start with slowave doctor."
+sidebarTitle: "Troubleshooting"
+---
+
+When something isn't working, the first command to run is always `slowave doctor`. It checks every component in sequence — Python version, dependencies, embedding model, daemon reachability, client configuration, and lifecycle version — and points you at specific issues with actionable remediations.
+
+```bash
+slowave doctor
+```
+
+```bash
+slowave doctor --verbose
+```
+
+If you need to file a bug report, capture the full verbose output:
+
+```bash
+slowave doctor --verbose 2>&1 | tee /tmp/slowave-doctor.log
+```
+
+The sections below cover failure modes by component.
+
+---
+
+## Daemon (HTTP MCP server)
+
+The daemon is a long-running process that serves `slowave_*` tools to clients over HTTP. It runs as a user-level service installed by `slowave setup`.
+
+<Accordion title="Daemon won't start — port already in use">
+  Setup assigns the first available loopback port from `8766` upward and stores it in the runtime root as `daemon.port`. If an explicitly configured port is already occupied by another process:
+
+  ```bash
+  lsof -i :8766
+  ```
+
+  ```bash
+  kill <PID>
+  ```
+
+  ```bash
+  slowave serve start
+  ```
+
+  Run `slowave doctor` and `slowave serve status` to print the effective URL and PID-file path.
+</Accordion>
+
+<Accordion title="Daemon won't start — stale PID file">
+  If the daemon was killed ungracefully, `daemon.pid` beneath the runtime root may prevent it from restarting. `slowave serve start` detects and cleans stale entries automatically. If it doesn't:
+
+  ```bash
+  slowave serve status
+  ```
+
+  This prints the exact PID-file path. Remove it manually, then restart:
+
+  ```bash
+  slowave serve start
+  ```
+</Accordion>
+
+<Accordion title="Daemon won't start — slow Python import on Windows">
+  On Windows the health check waits up to 45 seconds for imports to finish. If startup still fails, inspect the daemon error log in the runtime root:
+
+  ```text
+  <runtime-root>/logs/daemon.err
+  ```
+
+  Run `slowave doctor` to validate that all required packages are installed and the embedding model can load.
+</Accordion>
+
+<Accordion title="Daemon running but MCP tools not reachable">
+  Confirm the daemon is listening and healthy:
+
+  ```bash
+  slowave serve status
+  ```
+
+  ```bash
+  curl "$(slowave serve status --json | python -c 'import json,sys; print(json.load(sys.stdin)["mcp_url"].replace("/mcp", "/health"))')"
+  ```
+
+  A `200 OK` means the daemon is alive. If the health endpoint hangs, the engine may be warming up — models load lazily on the first tool call. Wait a moment and retry.
+</Accordion>
+
+<Accordion title="Daemon process is a zombie">
+  If the daemon process exists but doesn't respond to requests, force-kill and restart:
+
+  ```bash
+  pkill -f 'slowave serve'
+  pkill -f 'slowave.mcp.http_server'
+  slowave serve start
+  ```
+</Accordion>
+
+---
+
+## Background Worker
+
+The worker consolidates raw events into episodic memories on a 5-minute interval. It runs as a user-level service alongside the daemon.
+
+<Accordion title="Worker is not consolidating">
+  Check whether the worker process is running:
+
+  ```bash
+  slowave status | grep worker
+  ```
+
+  If it's not detected, check the platform-level supervisor:
+
+  <Tabs>
+    <Tab title="macOS">
+      ```bash
+      launchctl list | grep slowave
+      ```
+    </Tab>
+    <Tab title="Linux">
+      ```bash
+      systemctl --user status slowave-worker
+      ```
+    </Tab>
+    <Tab title="Windows">
+      ```bash
+      Get-ScheduledTask -TaskName SlowaveWorker
+      ```
+    </Tab>
+  </Tabs>
+
+  Check the worker log for errors:
+
+  ```bash
+  cat /tmp/slowave-worker.err
+  ```
+</Accordion>
+
+<Accordion title="Manual consolidation test">
+  Run a single consolidation pass to verify the worker logic works independently of the service:
+
+  ```bash
+  slowave worker --once
+  ```
+
+  Check recent worker run history from the CLI:
+
+  ```bash
+  slowave status --verbose | grep worker
+  ```
+
+  Or open the dashboard, which shows worker run history under the activity section.
+</Accordion>
+
+<Accordion title="Worker conflicting with daemon — database locked">
+  The worker and daemon share the same SQLite database in WAL mode, which supports concurrent reads and one writer at a time. If you see `database is locked` errors in the logs, an orphaned worker from a prior session may be holding stale WAL state. Restart both services:
+
+  ```bash
+  slowave serve restart
+  pkill -f 'slowave worker'
+  ```
+</Accordion>
+
+---
+
+## Dashboard
+
+The dashboard is a local web UI that starts on `127.0.0.1:8765` by default.
+
+<Accordion title="Dashboard won't start — port conflict">
+  The first run assigns an available port from `8765` upward and persists it as `dashboard.port`. If there is a conflict:
+
+  ```bash
+  lsof -i :8765
+  pkill -f 'slowave dashboard'
+  slowave dashboard
+  ```
+</Accordion>
+
+<Accordion title="Dashboard won't start — missing static assets">
+  If Slowave was installed from source without building the frontend, the dashboard serves a broken page. Verify the assets exist:
+
+  ```bash
+  ls slowave/dashboard/static/index.html
+  ```
+
+  If missing, build them:
+
+  ```bash
+  cd slowave/dashboard/ui
+  npm install
+  npm run build
+  ```
+</Accordion>
+
+<Accordion title="Dashboard loads but is blank">
+  Open the browser's developer console. API fetch errors indicate the dashboard's database connection is failing.
+
+  ```bash
+  slowave doctor
+  slowave status
+  ```
+
+  If the database file doesn't exist yet, use Slowave with an MCP client first to create it — the dashboard reads from the same database as the daemon.
+</Accordion>
+
+<Accordion title="Dashboard shows stale data">
+  The dashboard queries the database directly on every request. If data looks stale, either the consolidation worker hasn't run recently or the daemon hasn't written new events yet. Run a manual consolidation pass:
+
+  ```bash
+  slowave worker --once
+  ```
+
+  Then reload the dashboard.
+</Accordion>
+
+<Accordion title="Forget/Unforget buttons not working">
+  The Forget and Unforget action buttons are enabled by default when the dashboard runs. If they appear disabled, confirm the dashboard started without errors:
+
+  ```bash
+  pkill -f 'slowave dashboard'
+  slowave dashboard
+  ```
+
+  If the buttons are still unresponsive, check the browser console for API errors and run `slowave doctor` to verify the database is accessible.
+</Accordion>
+
+---
+
+## Client Integration (MCP tools)
+
+If the `slowave_activate`, `slowave_remember`, and related MCP tools do not appear in your agent, the client configuration is likely wrong or missing.
+
+<Accordion title="MCP tools not appearing in your agent">
+  Run the diagnostic to check every supported client:
+
+  ```bash
+  slowave doctor
+  ```
+
+  `doctor` reports which clients are correctly configured, misconfigured, or missing their MCP entries. Common issues per client:
+
+  | Client | Most common issue |
+  | --- | --- |
+  | Claude Code | `~/.claude.json` has the wrong `mcpServers` key. Re-run `slowave setup`. |
+  | Claude Desktop | Requires one manual paste of the lifecycle block into **Settings → General → Instructions for Claude**. |
+  | Cursor | `~/.cursor/mcp.json` uses a different key format. Re-run `slowave setup --client cursor`. |
+  | OpenCode | Uses the `mcp` key, not `mcpServers`. Check `~/.config/opencode/opencode.json`. |
+
+  Re-running setup is always safe and idempotent:
+
+  ```bash
+  slowave setup
+  ```
+</Accordion>
+
+<Accordion title="Tools appear but return errors — lifecycle version mismatch">
+  The MCP lifecycle contract (`activate → remember → recall → feedback → commit`) evolves between releases. `slowave doctor` reports if the lifecycle block version in `CLAUDE.md` or equivalent instruction files doesn't match the installed Slowave version. Fix by re-running setup to inject the current version:
+
+  ```bash
+  slowave setup
+  ```
+</Accordion>
+
+<Accordion title="slowave_commit fails — feedback completeness enforcement">
+  `slowave_commit` intentionally fails if feedback was not provided for every retrieved memory or procedure before calling commit. This is by design — the error response lists all outstanding targets that still need a `slowave_feedback` call. Assess each listed target with the correct label (`used`, `irrelevant`, `stale`, etc.) and then retry `slowave_commit`.
+</Accordion>
+
+<Accordion title="Hooks not firing — Claude Code or Codex">
+  Claude Code and Codex use `UserPromptSubmit` and `Stop` hooks to call Slowave on every turn. If they aren't firing, re-install the hooks:
+
+  ```bash
+  slowave setup --client claude-code
+  slowave setup --client codex
+  ```
+
+  Verify that `~/.claude/settings.json` contains the hook configuration after setup completes.
+</Accordion>
+
+<Accordion title="Memory is fragmented across scopes">
+  If memory appears to be split across two similar scopes (e.g. `project:my-repo` and `project:my_repo`), Slowave is treating them as separate memory silos. A cold-start warning is logged when a new scope is detected for the first time. Use consistent, exact scope names across all sessions.
+</Accordion>
+
+---
+
+## Database
+
+Slowave stores all data in a local SQLite database beneath the runtime root. `slowave doctor` prints the exact path.
+
+<Accordion title="Runtime root or migration issues">
+  Inspect the effective paths without making any changes:
+
+  ```bash
+  slowave doctor
+  slowave migrate-data --dry-run
+  ```
+
+  `SLOWAVE_HOME` and `SLOWAVE_DB` cannot be set simultaneously — Slowave raises an error immediately. Unset one of them. Use `SLOWAVE_HOME` to relocate the complete runtime tree; use `SLOWAVE_DB` only when a legacy integration needs an exact database path. See [Configuration](/operations/configuration) for details.
+</Accordion>
+
+<Accordion title="Database file locked">
+  SQLite in WAL mode supports concurrent reads and one writer at a time. If you see `database is locked` errors, an orphaned process may be holding the write lock. Kill all Slowave processes and restart:
+
+  ```bash
+  pkill -f slowave
+  slowave serve start
+  ```
+</Accordion>
+
+<Accordion title="Schema errors on startup — migration failed">
+  Slowave applies schema migrations automatically (pre-migrations → DDL → post-migrations). If a migration step fails, the database may be in an inconsistent state.
+
+  <Steps>
+    <Step title="Identify the failure">
+      Run `slowave doctor` to see which migration step failed and what error was reported.
+    </Step>
+    <Step title="Restore from backup">
+      If you have a recent backup, restore it:
+
+      ```bash
+      slowave restore /path/to/backups/slowave-YYYYMMDD_HHMMSS.db.gz
+      ```
+    </Step>
+    <Step title="File an issue if no backup exists">
+      If no backup is available, file an issue at [github.com/mrsalty/slowave/issues](https://github.com/mrsalty/slowave/issues) with the full error output from `slowave doctor --verbose`.
+    </Step>
+  </Steps>
+</Accordion>
+
+<Accordion title="Slow performance">
+  - WAL journal mode keeps write performance consistent. The `-wal` and `-shm` sidecar files are normal and are auto-checkpointed.
+  - Large databases (thousands of sessions) may slow down schema listing. The dashboard paginates results automatically.
+  - The auto-rebuild triggered by a logic version bump can take several minutes. It is a one-time cost per version upgrade.
+</Accordion>
+
+<Accordion title="Auto-rebuild appears stuck after an upgrade">
+  When `current_logic_version` changes, the engine replays all raw events to rebuild derived state. If the rebuild appears stuck:
+
+  1. Check the `log_versions` and `replay_checkpoints` tables — one process holds a `claimed_ts` lock.
+  2. If the lock timestamp is older than 180 seconds, wait — the next retry will claim it automatically.
+  3. After 5 failed claim attempts the rebuild stops. Restart the daemon to trigger a fresh retry:
+
+  ```bash
+  slowave serve restart
+  ```
+</Accordion>
+
+<Accordion title="Database integrity check">
+  Run the built-in health check:
+
+  ```bash
+  slowave status --verbose
+  ```
+
+  Or open the dashboard at the `/diagnostics` path, which exposes `PRAGMA integrity_check` and `PRAGMA quick_check` results under the Database Health section.
+</Accordion>
+
+---
+
+## Backup and Restore
+
+<Accordion title="Scheduled backup fails">
+  Check the backup error log:
+
+  ```bash
+  cat /tmp/slowave-backup.err
+  ```
+
+  Run a manual backup to confirm the failure is reproducible:
+
+  ```bash
+  slowave backup
+  ```
+
+  Also verify the backup directory is writable and that sufficient disk space is available.
+</Accordion>
+
+<Accordion title="Restore doesn't work or triggers a long rebuild">
+  `slowave restore` stops the daemon and worker, swaps the database file, and removes stale WAL sidecars. If the restored database was created by a different Slowave version, the engine will automatically rebuild derived state — this is normal and can take several minutes for large databases.
+
+  Take a fresh backup of the current state before any restore attempt, so you can roll back if needed:
+
+  ```bash
+  slowave backup
+  slowave restore /path/to/backup.db.gz
+  ```
+</Accordion>
+
+---
+
+## General diagnostics reference
+
+`slowave doctor` runs all checks in sequence. Here is what each check validates:
+
+| Check | What it validates |
+| --- | --- |
+| Python version | Python >= 3.11 is installed |
+| Package version | Installed version vs. latest |
+| Database | File exists, is accessible, passes integrity check |
+| Daemon | PID file, process is running, health endpoint responds |
+| Worker | Background worker process detected |
+| Client configs | MCP config, lifecycle instructions, and hooks for each client |
+| Lifecycle version | Installed version matches instruction files |
+| Feedback health | Feedback events per retrieval ratio |
+| Embedding model | Model loads successfully and can encode text |
