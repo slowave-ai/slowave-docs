@@ -1,5 +1,5 @@
 ---
-title: "Compared to other options"
+title: "How Slowave differs from RAG and other options"
 description: "Slowave is a living memory, not a search index with a model on top. See how it differs from RAG, rules files and hosted memory services."
 icon: "scale"
 sidebarTitle: "Slowave vs. RAG"
@@ -12,7 +12,8 @@ Many memory tools work like a library. They store text, fetch the closest matche
 Slowave does a different job. It is a **living memory** that changes as your agent works.
 
 <Frame caption="A one-way store-and-fetch pipeline versus a memory that learns from use.">
-  <img src="/images/diagrams/not-rag.svg" alt="A typical storage and retrieval setup stores text, fetches the closest matches and hands them to a language model, with no learning. Slowave is a loop: the agent writes memories, receives relevant ones, reports what helped, and background upkeep strengthens, fades or replaces memories without an LLM." />
+  <img className="block md:hidden" src="/images/diagrams/not-rag-mobile.svg" alt="A typical storage and retrieval setup stores text, fetches the closest matches and hands them to a language model, with no learning. Slowave is a loop: the agent writes memories, receives relevant ones, reports what helped, and background upkeep strengthens, fades or replaces memories without an LLM." />
+  <img className="hidden md:block" src="/images/diagrams/not-rag.svg" alt="A typical storage and retrieval setup stores text, fetches the closest matches and hands them to a language model, with no learning. Slowave is a loop: the agent writes memories, receives relevant ones, reports what helped, and background upkeep strengthens, fades or replaces memories without an LLM." />
 </Frame>
 
 <CardGroup cols={2}>
@@ -25,12 +26,12 @@ Slowave does a different job. It is a **living memory** that changes as your age
   <Card title="It captures how, not only what" icon="list-checks" href="/procedures">
     Besides facts, it saves methods that worked, as [procedures](/procedures).
   </Card>
-  <Card title="Its upkeep needs no model" icon="cpu">
-    Tidying, ranking and recall run locally with no LLM calls. No separate model sits behind your memory.
+  <Card title="Its upkeep needs no LLM" icon="cpu">
+    Tidying, ranking and recall run locally with no LLM calls. A small local search model handles matching.
   </Card>
 </CardGroup>
 
-Your agent's own model still does the reasoning. Slowave keeps memory and reasoning separate: Slowave decides what is worth remembering and recalling, and your agent decides what to do with it.
+Your agent's own model still does the reasoning. Slowave handles memory. Your agent handles reasoning.
 
 <Note>
   Slowave and document search work well together. Use search for large reference material. Use Slowave for the decisions, rules and lessons that build up as you work.
@@ -38,15 +39,15 @@ Your agent's own model still does the reasoning. Slowave keeps memory and reason
 
 ## Compared to other ways of giving an agent context
 
-| | Rules files (like `CLAUDE.md`) | Search over stored text (RAG) | Hosted memory services | Slowave |
+| | Rules files (like `CLAUDE.md`) | Search over stored text (RAG) | Hosted memory services (typical) | Slowave |
 | --- | --- | --- | --- | --- |
-| **Who writes memory** | You | You index your content | The service | Your agent, with your review |
+| **Who writes memory** | You | You index your content | The service | Your agent. You can inspect it in the dashboard. |
 | **Where it lives** | Your repo | Wherever you host it | A cloud service | Your computer |
 | **Shared between tools** | Per tool | Depends on setup | Usually | Yes |
 | **Gets better with use** | No | Typically no | Varies | Yes, from agent feedback |
 | **Replaces outdated information** | By hand | By re-indexing | Varies | Yes |
-| **Saves reusable methods** | No | No | Rarely | Yes, as procedures |
-| **Needs an account or key** | No | Often | Usually | No |
+| **Saves reusable methods** | No | No | Varies | Yes, as procedures |
+| **Needs an account or key** | No | Varies | Varies | No account. Your agent keeps its own LLM account. |
 | **Best for** | Stable team conventions | Searching documents | Apps with many end users | Your own coding workflow |
 
 <Tip>
@@ -64,18 +65,21 @@ Your agent's own model still does the reasoning. Slowave keeps memory and reason
 - You need memory for end users of a product you ship. Slowave is for developers using coding agents.
 - You need encrypted storage out of the box.
 
-## Early results
+## Preliminary results
 
-We test how well Slowave finds the right information in long conversation histories.
+We test whether Slowave returns the evidence needed to answer questions about long conversation histories. An external LLM judge scores the retrieved text.
 
 | Test | Result |
 | --- | --- |
-| LoCoMo, all questions | 71.84% |
+| LoCoMo, 1,534 answerable questions | 71.84% |
 | LoCoMo, questions spanning several sessions | 87.04% |
-| LongMemEval, updated facts | 83.33% |
+| LongMemEval oracle, knowledge updates | 83.33% |
+| LongMemEval oracle, all 500 questions | 65.20% |
+
+Scores are lower for time-based questions (about 55% on LoCoMo, 46% on LongMemEval) and for counting across sessions (53%).
 
 <Warning>
-  These are early results. They measure whether the right evidence was found, not whether a coding agent finished its task better. We do not rank Slowave against other systems.
+  These results are preliminary. They measure whether the right evidence was found, not whether a coding agent finished its task better. LongMemEval oracle has no distractor sessions, so it isn't comparable to LongMemEval-S leaderboards. We do not rank Slowave against other systems.
 </Warning>
 
 <Card title="Read the code" icon="github" href="https://github.com/slowave-ai/slowave" horizontal>

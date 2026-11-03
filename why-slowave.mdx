@@ -14,7 +14,8 @@ It does not remember that you ruled out a library last week. It does not remembe
 So you explain it again. And again.
 
 <Frame caption="The same rule, with and without memory.">
-  <img src="/images/diagrams/before-after.svg" alt="Without memory, a rule stated on Monday is lost on Tuesday and you repeat it. With Slowave, the rule is saved and recalled automatically in any agent." />
+  <img className="block md:hidden" src="/images/diagrams/before-after-mobile.svg" alt="Without memory, a rule stated on Monday is lost on Tuesday and you repeat it. With Slowave, the rule is saved and recalled automatically in any agent." />
+  <img className="hidden md:block" src="/images/diagrams/before-after.svg" alt="Without memory, a rule stated on Monday is lost on Tuesday and you repeat it. With Slowave, the rule is saved and recalled automatically in any agent." />
 </Frame>
 
 ## What changes with Slowave
@@ -41,12 +42,16 @@ So you explain it again. And again.
     Slowave does not make your agent smarter at thinking. It makes sure your agent has the right context.
   </Accordion>
   <Accordion title="It cannot remember what was never saved">
-    Memory depends on your agent saving things worth keeping. The more you use it, the better it gets.
+    Slowave can only recall what your agent saved. Memory quality depends on your agent's saves and feedback.
   </Accordion>
   <Accordion title="It adds a little overhead">
     Recalled memory takes space in your agent's context. The dashboard shows a rough estimate.
   </Accordion>
 </AccordionGroup>
+
+<Card title="Real-world scenarios" icon="layers" href="/use-cases" horizontal>
+  See how engineers use it day to day.
+</Card>
 
 <Card title="Next: see how it works" icon="arrow-right" href="/how-it-works" horizontal>
   The whole idea in one picture.

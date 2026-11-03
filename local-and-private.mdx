@@ -6,7 +6,8 @@ sidebarTitle: "Privacy and your data"
 ---
 
 <Frame caption="Your agents, Slowave and your memory all live on your computer.">
-  <img src="/images/diagrams/local.svg" alt="Your coding agents talk to Slowave, which keeps memory in a local database on your computer. A hosted memory service is not used." />
+  <img className="block md:hidden" src="/images/diagrams/local-mobile.svg" alt="Your coding agents talk to Slowave, which keeps memory in a local database on your computer. A hosted memory service is not used." />
+  <img className="hidden md:block" src="/images/diagrams/local.svg" alt="Your coding agents talk to Slowave, which keeps memory in a local database on your computer. A hosted memory service is not used." />
 </Frame>
 
 ## What stays on your machine
@@ -43,7 +44,7 @@ Your coding agent still has its own account with its own provider. Slowave does 
 </Warning>
 
 - What your agent saves is whatever your agent decides to save. Review the **Memories** view in the dashboard from time to time.
-- Recalled memories are placed in your agent's conversation. They then go wherever your agent sends its conversations.
+- Recalled memories are placed in your agent's conversation. Your agent then sends them to its model provider, like any other prompt text.
 
 ## Stay in control
 

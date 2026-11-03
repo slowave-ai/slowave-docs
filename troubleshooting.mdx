@@ -6,6 +6,18 @@ icon: "life-buoy"
 keywords: ["troubleshooting", "doctor", "not working", "dashboard", "service", "windows", "linux", "macos"]
 ---
 
+## Find your problem fast
+
+| What you see | Go to |
+| --- | --- |
+| Your agent doesn't remember anything | [Connection problems](#connection-problems) |
+| Setup didn't find your agent | [Connection problems](#connection-problems) |
+| The dashboard won't open | [Connection problems](#connection-problems) |
+| Slowave stopped, or `slowave` is not found | [Services and updates](#services-and-updates) |
+| It's slow the first time | [Services and updates](#services-and-updates) |
+| Something specific to macOS, Linux or Windows | [Problems on your system](#problems-on-your-system) |
+| A locked or damaged database, or a failed backup | [Data problems](#data-problems) |
+
 ## Run `slowave doctor` first
 
 Most problems show up in these two commands.
@@ -68,7 +80,7 @@ slowave status --services
     Don't install a second copy to fix this.
   </Accordion>
   <Accordion title="It's slow on first use">
-    Setup downloads small search models once. Keep an internet connection until setup finishes. If it stopped early, run `slowave setup` again to resume. Your memory text stays on your computer.
+    Setup downloads a small search model (about 45 MB, from Hugging Face) the first time. After that it works offline. Keep an internet connection until setup finishes. If it stopped early, run `slowave setup` again to resume. Your memory text stays on your computer.
   </Accordion>
 </AccordionGroup>
 
@@ -117,4 +129,4 @@ Open an issue at [github.com/slowave-ai/slowave/issues](https://github.com/slowa
   Check the output for private paths or project names before you post it.
 </Warning>
 
-More answers are in the [FAQ](/faq-and-troubleshooting).
+More answers are in the [FAQ](/faq).

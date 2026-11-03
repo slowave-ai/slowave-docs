@@ -1,7 +1,7 @@
 ---
 title: "What Slowave remembers"
 description: "What gets saved, how memories stay organized by project, and how Slowave keeps the useful ones and lets old ones go."
-icon: "brain"
+icon: "notebook-pen"
 sidebarTitle: "Memories"
 ---
 
@@ -34,6 +34,11 @@ Each memory belongs to a **scope**, usually one project. When you work in a proj
 
 ## Memories change over time
 
+<Frame caption="Specific experiences become lasting lessons. Useful ones grow stronger and old ones fade.">
+  <img className="block md:hidden" src="/images/diagrams/brain-mobile.svg" alt="Experiences are saved during a task, related ones are grouped between tasks, and lasting lessons remain over time. Useful memories grow stronger and old ones fade or are replaced." />
+  <img className="hidden md:block" src="/images/diagrams/brain.svg" alt="Experiences are saved during a task, related ones are grouped between tasks, and lasting lessons remain over time. Useful memories grow stronger and old ones fade or are replaced." />
+</Frame>
+
 <Steps>
   <Step title="Helpful memories grow stronger">
     When your agent reports that a memory helped, it is more likely to appear again.
@@ -42,12 +47,12 @@ Each memory belongs to a **scope**, usually one project. When you work in a proj
     Memories that never help slowly drop down the list.
   </Step>
   <Step title="Outdated memories are replaced">
-    If your agent saves a newer decision that contradicts an older one, the old one is marked as replaced.
+    When your agent saves a newer decision and reports the older one as stale, the old memory is marked as replaced.
   </Step>
 </Steps>
 
 <Tip>
-  You can see all of this in the [dashboard](/see-it-work). Nothing happens out of sight.
+  You can see all of this in the [dashboard](/see-it-in-action). Nothing happens out of sight.
 </Tip>
 
 ## What Slowave does not do

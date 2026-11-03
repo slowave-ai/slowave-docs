@@ -4,16 +4,16 @@
   "name": "Slowave",
   "description": "Living memory for your AI coding agents. Local, open source, no LLM API key.",
   "colors": {
-    "primary": "#2F8F5B",
+    "primary": "#26794C",
     "light": "#41C76C",
     "dark": "#2F6F4E"
   },
   "logo": {
-    "light": "/images/slowave-logo.jpeg",
-    "dark": "/images/slowave-logo.jpeg",
+    "light": "/images/slowave-logo-light.png",
+    "dark": "/images/slowave-logo-dark.png",
     "href": "/"
   },
-  "favicon": "/images/slowave-icon.jpeg",
+  "favicon": "/images/favicon.png",
   "appearance": {
     "default": "system",
     "strict": false
@@ -32,7 +32,7 @@
           "index",
           "why-slowave",
           "quickstart",
-          "see-it-work",
+          "see-it-in-action",
           "use-cases"
         ]
       },
@@ -133,7 +133,7 @@
     },
     {
       "source": "/guides/dashboard",
-      "destination": "/see-it-work"
+      "destination": "/see-it-in-action"
     },
     {
       "source": "/operations/cli-reference",
@@ -194,6 +194,10 @@
     {
       "source": "/faq-and-troubleshooting",
       "destination": "/faq"
+    },
+    {
+      "source": "/see-it-work",
+      "destination": "/see-it-in-action"
     }
   ]
 }

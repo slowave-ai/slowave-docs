@@ -9,8 +9,8 @@
     <rect x="60" y="100" width="170" height="170" rx="14" fill="#171a21" stroke="#2c313b"/>
     <text x="145" y="150" font-size="17" font-weight="600" fill="#edf4ef">Your coding</text>
     <text x="145" y="172" font-size="17" font-weight="600" fill="#edf4ef">agents</text>
-    <text x="145" y="208" font-size="13" fill="#8ca098">Claude Code, Cursor,</text>
-    <text x="145" y="226" font-size="13" fill="#8ca098">Codex and more</text>
+    <text x="145" y="208" font-size="13" fill="#8ca098">Claude Code, Codex,</text>
+    <text x="145" y="226" font-size="13" fill="#8ca098">Cursor and more</text>
 
     <rect x="270" y="100" width="170" height="170" rx="14" fill="#171a21" stroke="#41c76c" stroke-width="1.5"/>
     <text x="355" y="170" font-size="19" font-weight="700" fill="#edf4ef">Slowave</text>

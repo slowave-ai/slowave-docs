@@ -1,13 +1,13 @@
 ---
 title: "Quickstart"
-description: "Install Slowave, connect your coding agent and see your first memory in about five minutes."
+description: "Install Slowave, connect your coding agent and save your first memory. Works on macOS, Linux and Windows."
 icon: "rocket"
 sidebarTitle: "Quickstart"
 ---
 
 By the end of this page, Slowave will be running and connected to your coding agent.
 
-**You need:** Python 3.11 or newer, and one supported coding agent. Slowave runs on macOS, Linux and Windows.
+**You need:** Python 3.11 or newer, pipx, and one supported coding agent. Slowave runs on macOS, Linux and Windows.
 
 <Steps>
   <Step title="Install Slowave">
@@ -23,7 +23,7 @@ By the end of this page, Slowave will be running and connected to your coding ag
     ```
   </Step>
   <Step title="Run setup">
-    Setup connects every supported agent it finds and starts Slowave in the background.
+    Setup connects every supported agent it finds and starts Slowave in the background. The first run downloads a small search model (about 45 MB), so you need an internet connection.
 
     ```bash
     slowave setup
@@ -48,7 +48,7 @@ By the end of this page, Slowave will be running and connected to your coding ag
 </Steps>
 
 <Note>
-  Cursor and Claude Desktop need one manual paste after setup. See [Integrations](/integrations/overview).
+  Cursor and Claude Desktop need one manual paste after setup, and Copilot CLI support is partly validated. See [Integrations](/integrations/overview).
 </Note>
 
 <AccordionGroup>
@@ -58,11 +58,14 @@ By the end of this page, Slowave will be running and connected to your coding ag
   <Accordion title="My agent doesn't seem to remember">
     Run `slowave doctor`, then restart your agent. See [Troubleshooting](/troubleshooting).
   </Accordion>
+  <Accordion title="I have another question">
+    Browse the [FAQ](/faq) or see what others do in [use cases](/use-cases).
+  </Accordion>
   <Accordion title="I want to undo setup">
     Run `slowave uninstall`. It removes the connections and keeps your memory. See [Uninstall](/uninstall).
   </Accordion>
 </AccordionGroup>
 
-<Card title="Next: see it work" icon="arrow-right" href="/see-it-work" horizontal>
+<Card title="Next: see it in action" icon="arrow-right" href="/see-it-in-action" horizontal>
   Follow a rule from one session to the next.
 </Card>

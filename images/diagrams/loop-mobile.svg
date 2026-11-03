@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 872" role="img" aria-labelledby="t d">
+  <title id="t">The Slowave memory loop</title>
+  <desc id="d">Five steps in a loop: start the task and get relevant memory, work, save what is new, say what helped, finish the task. Feedback makes the next task better.</desc>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8ca098"/>
+    </marker>
+  </defs>
+  <rect width="640" height="872" rx="20" fill="#0f1115"/>
+  <g font-family="Manrope, Inter, Arial, sans-serif" text-anchor="middle">
+    <text x="320" y="48" font-size="28" font-weight="600" fill="#edf4ef">Every task starts</text>
+    <text x="320" y="82" font-size="28" font-weight="600" fill="#edf4ef">smarter than the last</text>
+    <rect x="40" y="116" width="500" height="104" rx="14" fill="#171a21" stroke="#41c76c" stroke-width="1.5"/>
+    <circle cx="86" cy="168" r="22" fill="#41c76c"/>
+    <text x="86" y="175" font-size="22" font-weight="700" fill="#0f1115">1</text>
+    <text x="130" y="156" font-size="24" font-weight="600" text-anchor="start" fill="#edf4ef">Start</text>
+    <text x="130" y="184" font-size="18" text-anchor="start" fill="#8ca098">Your agent gets the</text>
+    <text x="130" y="206" font-size="18" text-anchor="start" fill="#8ca098">memory that matters</text>
+    <line x1="290" y1="222" x2="290" y2="246" stroke="#8ca098" stroke-width="2" marker-end="url(#a)"/>
+    <rect x="40" y="248" width="500" height="104" rx="14" fill="#171a21" stroke="#2c313b" stroke-width="1.5"/>
+    <circle cx="86" cy="300" r="22" fill="#41c76c"/>
+    <text x="86" y="307" font-size="22" font-weight="700" fill="#0f1115">2</text>
+    <text x="130" y="288" font-size="24" font-weight="600" text-anchor="start" fill="#edf4ef">Work</text>
+    <text x="130" y="316" font-size="18" text-anchor="start" fill="#8ca098">It codes with your past</text>
+    <text x="130" y="338" font-size="18" text-anchor="start" fill="#8ca098">decisions in mind</text>
+    <line x1="290" y1="354" x2="290" y2="378" stroke="#8ca098" stroke-width="2" marker-end="url(#a)"/>
+    <rect x="40" y="380" width="500" height="104" rx="14" fill="#171a21" stroke="#2c313b" stroke-width="1.5"/>
+    <circle cx="86" cy="432" r="22" fill="#41c76c"/>
+    <text x="86" y="439" font-size="22" font-weight="700" fill="#0f1115">3</text>
+    <text x="130" y="420" font-size="24" font-weight="600" text-anchor="start" fill="#edf4ef">Remember</text>
+    <text x="130" y="448" font-size="18" text-anchor="start" fill="#8ca098">New decisions and</text>
+    <text x="130" y="470" font-size="18" text-anchor="start" fill="#8ca098">lessons are saved</text>
+    <line x1="290" y1="486" x2="290" y2="510" stroke="#8ca098" stroke-width="2" marker-end="url(#a)"/>
+    <rect x="40" y="512" width="500" height="104" rx="14" fill="#171a21" stroke="#2c313b" stroke-width="1.5"/>
+    <circle cx="86" cy="564" r="22" fill="#41c76c"/>
+    <text x="86" y="571" font-size="22" font-weight="700" fill="#0f1115">4</text>
+    <text x="130" y="552" font-size="24" font-weight="600" text-anchor="start" fill="#edf4ef">Feedback</text>
+    <text x="130" y="580" font-size="18" text-anchor="start" fill="#8ca098">Your agent says what</text>
+    <text x="130" y="602" font-size="18" text-anchor="start" fill="#8ca098">helped and what didn't</text>
+    <line x1="290" y1="618" x2="290" y2="642" stroke="#8ca098" stroke-width="2" marker-end="url(#a)"/>
+    <rect x="40" y="644" width="500" height="104" rx="14" fill="#171a21" stroke="#2c313b" stroke-width="1.5"/>
+    <circle cx="86" cy="696" r="22" fill="#41c76c"/>
+    <text x="86" y="703" font-size="22" font-weight="700" fill="#0f1115">5</text>
+    <text x="130" y="684" font-size="24" font-weight="600" text-anchor="start" fill="#edf4ef">Finish</text>
+    <text x="130" y="712" font-size="18" text-anchor="start" fill="#8ca098">The task is closed and</text>
+    <text x="130" y="734" font-size="18" text-anchor="start" fill="#8ca098">memory improves</text>
+    <path d="M540 696 H600 V168 H542" fill="none" stroke="#8ca098" stroke-width="2" stroke-dasharray="6 6" marker-end="url(#a)"/>
+    <text x="320" y="792" font-size="20" fill="#a0e3b5">Useful memories grow stronger.</text>
+    <text x="320" y="820" font-size="20" fill="#a0e3b5">Outdated ones fade away.</text>
+  </g>
+</svg>

@@ -5,21 +5,33 @@ sidebarTitle: "Welcome"
 icon: "house"
 ---
 
-<Frame caption="Slowave runs beside your coding agents and keeps what matters.">
-  <img src="/images/diagrams/loop.svg" alt="Five steps in a loop: start, work, remember, feedback, finish. Useful memories grow stronger and outdated ones fade." />
+<Frame caption="The Slowave dashboard shows what your agent remembers and what it used. Example data.">
+  <img src="/images/dashboard/overview.jpg" alt="Slowave dashboard overview showing memory activity and how often recalled memories were useful." />
 </Frame>
 
 ## Tell your agent once. It remembers.
 
 Every new coding session starts from zero. You explain your conventions again, and you repeat the decision you made last week.
 
-Slowave fixes that. It gives your agents a shared memory that lives on your computer. A rule you state once shows up in the next task, even in a different agent.
+Slowave is a local MCP memory server. It gives your coding agents one shared memory of your decisions, rules and lessons, and of the methods that worked, which it saves as [procedures](/procedures). A rule you state once shows up in the next task, even in a different agent.
+
+<CodeGroup>
+
+```bash Install
+pipx install slowave
+```
+
+```bash Connect your agents
+slowave setup
+```
+
+</CodeGroup>
 
 <CardGroup cols={3}>
   <Card title="Quickstart" icon="rocket" href="/quickstart">
-    Install in about five minutes.
+    Install and connect your agent.
   </Card>
-  <Card title="See it work" icon="eye" href="/see-it-work">
+  <Card title="See it in action" icon="eye" href="/see-it-in-action">
     Watch a rule survive from one session to the next.
   </Card>
   <Card title="How it works" icon="workflow" href="/how-it-works">
@@ -45,7 +57,7 @@ Slowave fixes that. It gives your agents a shared memory that lives on your comp
     Your memory stays on your computer. Nothing goes to a hosted memory service.
   </Card>
   <Card title="No API key" icon="key-round">
-    Slowave runs without any LLM key. There is nothing to sign up for.
+    Slowave makes no LLM calls to store, rank or find memories. Your coding agent keeps its own LLM account.
   </Card>
   <Card title="Works with your tools" icon="plug">
     One memory shared by Claude Code, Cursor, Codex and more.
@@ -69,7 +81,7 @@ Slowave fixes that. It gives your agents a shared memory that lives on your comp
   <Card title="Codex" icon="code" href="/integrations/codex" />
   <Card title="Cursor" icon="mouse-pointer-2" href="/integrations/cursor" />
   <Card title="OpenCode" icon="square-terminal" href="/integrations/opencode" />
-  <Card title="Windsurf" icon="wind" href="/integrations/windsurf" />
+  <Card title="Windsurf (Devin Desktop)" icon="wind" href="/integrations/windsurf" />
   <Card title="Cline" icon="bot" href="/integrations/cline" />
   <Card title="Claude Desktop" icon="monitor" href="/integrations/claude-desktop" />
 </CardGroup>
@@ -92,5 +104,5 @@ Slowave fixes that. It gives your agents a shared memory that lives on your comp
 </CardGroup>
 
 <Note>
-  Slowave is public beta software. Settings and storage may change between versions.
+  Slowave is public beta software. Settings and storage may change between versions. Memory is stored as plaintext in a local database, so protect it with your operating system's file permissions or disk encryption. The benchmarks are preliminary and measure evidence retrieval, not end-to-end accuracy.
 </Note>

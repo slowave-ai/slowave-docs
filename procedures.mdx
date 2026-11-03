@@ -8,7 +8,8 @@ icon: "list-checks"
 Most memory tools store facts. Slowave also stores **procedures**: the ordered steps that worked the last time your agent did a kind of task.
 
 <Frame caption="From one finished task to a method your agent can reuse.">
-  <img src="/images/diagrams/procedures.svg" alt="A task is finished and its working method is saved as a procedure. On a similar task later, the procedure is offered to the agent. The agent reports whether it helped, and the procedure improves." />
+  <img className="block md:hidden" src="/images/diagrams/procedures-mobile.svg" alt="A task is finished and its working method is saved as a procedure. On a similar task later, the procedure is offered to the agent. The agent reports whether it helped, and the procedure improves." />
+  <img className="hidden md:block" src="/images/diagrams/procedures.svg" alt="A task is finished and its working method is saved as a procedure. On a similar task later, the procedure is offered to the agent. The agent reports whether it helped, and the procedure improves." />
 </Frame>
 
 ## Facts tell your agent what. Procedures tell it how.
@@ -61,7 +62,7 @@ Most memory tools store facts. Slowave also stores **procedures**: the ordered s
 
 <AccordionGroup>
   <Accordion title="Procedures are advice, not orders">
-    Your agent decides what to do. A procedure is evidence from past work to reason about, not a script to run blindly.
+    Your agent decides what to do. A procedure is a tip from past work. Your agent decides whether to follow it.
   </Accordion>
   <Accordion title="Failures are kept as warnings">
     If a method didn't work, Slowave keeps it and labels it as a caution. Your agent learns what to avoid.

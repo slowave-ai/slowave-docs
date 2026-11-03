@@ -5,10 +5,11 @@ icon: "workflow"
 sidebarTitle: "How it works"
 ---
 
-Think of Slowave as a notebook your agent reads before each task and writes in afterwards. Over time, the notebook keeps what helps and lets the rest fade.
+Think of Slowave as a memory your agent consults before each task and updates afterwards. Over time it keeps what helps and lets the rest fade.
 
 <Frame caption="The Slowave loop. Your agent drives it. You don't have to.">
-  <img src="/images/diagrams/loop.svg" alt="Five steps in a loop: start, work, remember, feedback, finish." />
+  <img className="block md:hidden" src="/images/diagrams/loop-mobile.svg" alt="Five steps in a loop: start, work, remember, feedback, finish." />
+  <img className="hidden md:block" src="/images/diagrams/loop.svg" alt="Five steps in a loop: start, work, remember, feedback, finish." />
 </Frame>
 
 ## The five steps
@@ -39,7 +40,7 @@ Think of Slowave as a notebook your agent reads before each task and writes in a
 
 Between tasks, Slowave tidies up. Useful memories get stronger. Duplicates merge. Outdated memories fade or are replaced by newer ones.
 
-This all happens on your computer, with no LLM calls and no API key. The ideas are [inspired by how the brain remembers](/inspired-by-the-brain).
+This all happens on your computer, with no LLM calls and no API key for Slowave itself. The ideas are [inspired by how the brain remembers](/inspired-by-the-brain).
 
 <Info>
   Slowave is not a search index with a language model on top. It is a memory that changes with use. See [how it differs](/compared-to-others).
@@ -55,7 +56,7 @@ This all happens on your computer, with no LLM calls and no API key. The ideas a
 | **Feedback** | "This helped. That didn't." |
 | **Commit** | "The task is done. Here's what happened." |
 
-These are the five tools Slowave offers through MCP, a standard way for agents to use tools. The [reference page](/reference-lite) lists them.
+Slowave gives your agent these five tools through MCP, the standard way agents call external tools. The [reference page](/reference-lite) lists them.
 
 <Card title="Next: install it" icon="arrow-right" href="/quickstart" horizontal>
   It takes about five minutes.

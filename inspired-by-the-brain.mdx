@@ -6,7 +6,7 @@ icon: "brain"
 keywords: ["ai agent memory", "brain-inspired memory", "why not store everything", "agent memory design"]
 ---
 
-The obvious way to give an agent a memory is to write everything down and search it later. It sounds safe. After a few months, it isn't.
+The obvious way to give an agent a memory is to write everything down and search it later. It sounds safe. After a few months, it gets noisy.
 
 ## The filing cabinet problem
 
@@ -19,12 +19,13 @@ Imagine you saved every note from every coding session for a year.
 Your agent now has to read all of it, guess which notes are current, and decide what to trust. The more you store, the worse it gets.
 
 <Frame caption="After a year, a store-everything memory is noisy. A brain-like memory is smaller and sharper.">
-  <img src="/images/diagrams/cabinet-vs-brain.svg" alt="Left: thousands of equal grey notes, some contradicting each other. Right: a few large connected lessons with faded details around them." />
+  <img className="block md:hidden" src="/images/diagrams/cabinet-vs-brain-mobile.svg" alt="Left: thousands of equal grey notes, some contradicting each other. Right: a few large connected lessons with faded details around them." />
+  <img className="hidden md:block" src="/images/diagrams/cabinet-vs-brain.svg" alt="Left: thousands of equal grey notes, some contradicting each other. Right: a few large connected lessons with faded details around them." />
 </Frame>
 
 ## What your brain does differently
 
-You don't remember every sentence of every day. Your brain does something smarter, and it's the reason you stay useful as you collect more experience.
+You don't remember every sentence of every day. Your brain does something smarter. It keeps you useful as you gain experience.
 
 <AccordionGroup>
   <Accordion title="It keeps the lesson, not only the event" icon="graduation-cap" defaultOpen>
@@ -40,9 +41,6 @@ You don't remember every sentence of every day. Your brain does something smarte
   </Accordion>
   <Accordion title="It updates itself" icon="refresh-cw">
     When you change your mind, the new belief replaces the old one. You don't carry both and argue with yourself.
-  </Accordion>
-  <Accordion title="It keeps both the specific and the general" icon="layers">
-    You can recall a particular moment, and you also hold general knowledge built from many moments. Keeping the details lets you avoid mixing up similar events. Keeping the patterns lets you handle situations you've never seen.
   </Accordion>
   <Accordion title="It remembers skills, not only facts" icon="list-checks">
     Knowing that something is true is different from knowing how to do it. People build skills by repeating methods that worked.
@@ -83,9 +81,9 @@ In people, remembering and reasoning work together, but they are not the same th
 Slowave follows that split. It handles memory. Your agent's own model does the thinking. That is also why Slowave isn't [a search index with a model on top](/compared-to-others).
 
 <Note>
-  This is inspiration, not imitation. Slowave is a practical engineering tool, not a model of the brain. The analogy does not prove that it works. The [early results](/compared-to-others) and your own [dashboard](/see-it-work) are the evidence.
+  This is inspiration, not imitation. Slowave is a practical engineering tool, not a model of the brain. The analogy does not prove that it works. The [early results](/compared-to-others) and your own [dashboard](/see-it-in-action) are the evidence.
 </Note>
 
-<Card title="See it in action" icon="arrow-right" href="/see-it-work" horizontal>
+<Card title="See it in action" icon="arrow-right" href="/see-it-in-action" horizontal>
   Watch a rule and a reusable method in two short stories.
 </Card>

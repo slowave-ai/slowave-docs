@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 754" role="img" aria-labelledby="t d">
+  <title id="t">From experiences to lasting knowledge</title>
+  <desc id="d">Each task is saved as a specific experience. Between tasks, Slowave groups related experiences and distills lasting lessons. Useful memories grow stronger. Unused ones fade. Outdated ones are replaced.</desc>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8ca098"/>
+    </marker>
+  </defs>
+  <rect width="640" height="754" rx="20" fill="#0f1115"/>
+  <g font-family="Manrope, Inter, Arial, sans-serif" text-anchor="middle">
+    <text x="320" y="48" font-size="28" font-weight="600" fill="#edf4ef">Specific experiences</text>
+    <text x="320" y="82" font-size="28" font-weight="600" fill="#edf4ef">become lasting knowledge</text>
+    <rect x="40" y="124" width="560" height="150" rx="14" fill="#171a21" stroke="#2c313b" stroke-width="1.5"/>
+    <text x="320" y="156" font-size="16" font-weight="600" letter-spacing="1.5" fill="#41c76c">DURING A TASK</text>
+    <text x="320" y="188" font-size="22" font-weight="600" fill="#edf4ef">Experiences are saved</text>
+    <text x="320" y="218" font-size="18" fill="#8ca098">Each task keeps its own</text>
+    <text x="320" y="242" font-size="18" fill="#8ca098">details and context</text>
+    <line x1="320" y1="276" x2="320" y2="306" stroke="#8ca098" stroke-width="2" marker-end="url(#a)"/>
+    <rect x="40" y="308" width="560" height="150" rx="14" fill="#171a21" stroke="#41c76c" stroke-width="1.5"/>
+    <text x="320" y="340" font-size="16" font-weight="600" letter-spacing="1.5" fill="#41c76c">BETWEEN TASKS</text>
+    <text x="320" y="372" font-size="22" font-weight="600" fill="#edf4ef">Related ones are grouped</text>
+    <text x="320" y="402" font-size="18" fill="#8ca098">Slowave tidies up quietly</text>
+    <text x="320" y="426" font-size="18" fill="#8ca098">in the background</text>
+    <line x1="320" y1="460" x2="320" y2="490" stroke="#8ca098" stroke-width="2" marker-end="url(#a)"/>
+    <rect x="40" y="492" width="560" height="150" rx="14" fill="#171a21" stroke="#2c313b" stroke-width="1.5"/>
+    <text x="320" y="524" font-size="16" font-weight="600" letter-spacing="1.5" fill="#41c76c">OVER TIME</text>
+    <text x="320" y="556" font-size="22" font-weight="600" fill="#edf4ef">Lasting lessons remain</text>
+    <text x="320" y="586" font-size="18" fill="#8ca098">Useful ones grow stronger.</text>
+    <text x="320" y="610" font-size="18" fill="#8ca098">Old ones fade or are replaced.</text>
+    <text x="320" y="688" font-size="20" fill="#a0e3b5">Inspired by how human memory works.</text>
+    <text x="320" y="716" font-size="20" fill="#a0e3b5">Not a simulation of it.</text>
+  </g>
+</svg>
