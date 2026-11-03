@@ -27,20 +27,54 @@
   "navigation": {
     "groups": [
       {
-        "group": "Start here",
-        "pages": ["index", "why-slowave", "how-it-works"]
+        "group": "Get started",
+        "pages": [
+          "index",
+          "why-slowave",
+          "quickstart",
+          "see-it-work",
+          "use-cases"
+        ]
       },
       {
-        "group": "Try it",
-        "pages": ["quickstart", "see-it-work", "connect-your-agent"]
+        "group": "How Slowave works",
+        "pages": [
+          "how-it-works",
+          "memory-model",
+          "procedures",
+          "inspired-by-the-brain",
+          "compared-to-others"
+        ]
       },
       {
-        "group": "Understand it",
-        "pages": ["memory-model", "procedures", "inspired-by-the-brain", "local-and-private", "compared-to-others"]
+        "group": "Integrations",
+        "pages": [
+          "integrations/overview",
+          "integrations/claude-code",
+          "integrations/codex",
+          "integrations/cursor",
+          "integrations/windsurf",
+          "integrations/cline",
+          "integrations/opencode",
+          "integrations/claude-desktop",
+          "integrations/copilot-cli"
+        ]
       },
       {
-        "group": "Go further",
-        "pages": ["use-cases", "reference-lite", "faq-and-troubleshooting"]
+        "group": "Your data and upkeep",
+        "pages": [
+          "local-and-private",
+          "backup-and-restore",
+          "uninstall"
+        ]
+      },
+      {
+        "group": "Help and reference",
+        "pages": [
+          "troubleshooting",
+          "faq",
+          "reference-lite"
+        ]
       }
     ]
   },
@@ -69,26 +103,97 @@
     }
   },
   "redirects": [
-    { "source": "/setup/installation", "destination": "/quickstart" },
-    { "source": "/setup/client-integrations", "destination": "/connect-your-agent" },
-    { "source": "/setup/services", "destination": "/reference-lite" },
-    { "source": "/setup/removal", "destination": "/faq-and-troubleshooting" },
-    { "source": "/guides/memory-lifecycle", "destination": "/memory-model" },
-    { "source": "/guides/scopes", "destination": "/memory-model" },
-    { "source": "/guides/procedures", "destination": "/procedures" },
-    { "source": "/guides/dashboard", "destination": "/see-it-work" },
-    { "source": "/operations/cli-reference", "destination": "/reference-lite" },
-    { "source": "/operations/backup-restore", "destination": "/reference-lite" },
-    { "source": "/operations/configuration", "destination": "/reference-lite" },
-    { "source": "/operations/troubleshooting", "destination": "/faq-and-troubleshooting" },
-    { "source": "/reference/architecture", "destination": "/how-it-works" },
-    { "source": "/reference/design", "destination": "/how-it-works" },
-    { "source": "/reference/benchmarks", "destination": "/compared-to-others" },
-    { "source": "/mcp/overview", "destination": "/reference-lite" },
-    { "source": "/mcp/activate", "destination": "/reference-lite" },
-    { "source": "/mcp/remember", "destination": "/reference-lite" },
-    { "source": "/mcp/recall", "destination": "/reference-lite" },
-    { "source": "/mcp/feedback", "destination": "/reference-lite" },
-    { "source": "/mcp/commit", "destination": "/reference-lite" }
+    {
+      "source": "/setup/installation",
+      "destination": "/quickstart"
+    },
+    {
+      "source": "/setup/client-integrations",
+      "destination": "/integrations/overview"
+    },
+    {
+      "source": "/setup/services",
+      "destination": "/reference-lite"
+    },
+    {
+      "source": "/setup/removal",
+      "destination": "/uninstall"
+    },
+    {
+      "source": "/guides/memory-lifecycle",
+      "destination": "/memory-model"
+    },
+    {
+      "source": "/guides/scopes",
+      "destination": "/memory-model"
+    },
+    {
+      "source": "/guides/procedures",
+      "destination": "/procedures"
+    },
+    {
+      "source": "/guides/dashboard",
+      "destination": "/see-it-work"
+    },
+    {
+      "source": "/operations/cli-reference",
+      "destination": "/reference-lite"
+    },
+    {
+      "source": "/operations/backup-restore",
+      "destination": "/backup-and-restore"
+    },
+    {
+      "source": "/operations/configuration",
+      "destination": "/reference-lite"
+    },
+    {
+      "source": "/operations/troubleshooting",
+      "destination": "/troubleshooting"
+    },
+    {
+      "source": "/reference/architecture",
+      "destination": "/how-it-works"
+    },
+    {
+      "source": "/reference/design",
+      "destination": "/how-it-works"
+    },
+    {
+      "source": "/reference/benchmarks",
+      "destination": "/compared-to-others"
+    },
+    {
+      "source": "/mcp/overview",
+      "destination": "/reference-lite"
+    },
+    {
+      "source": "/mcp/activate",
+      "destination": "/reference-lite"
+    },
+    {
+      "source": "/mcp/remember",
+      "destination": "/reference-lite"
+    },
+    {
+      "source": "/mcp/recall",
+      "destination": "/reference-lite"
+    },
+    {
+      "source": "/mcp/feedback",
+      "destination": "/reference-lite"
+    },
+    {
+      "source": "/mcp/commit",
+      "destination": "/reference-lite"
+    },
+    {
+      "source": "/connect-your-agent",
+      "destination": "/integrations/overview"
+    },
+    {
+      "source": "/faq-and-troubleshooting",
+      "destination": "/faq"
+    }
   ]
 }

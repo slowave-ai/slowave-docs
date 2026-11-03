@@ -1,0 +1,98 @@
+---
+title: "Slowave integrations: memory for every AI coding agent"
+description: "Connect Slowave to Claude Code, Copilot CLI, Codex, Cursor, OpenCode, Windsurf, Cline and Claude Desktop. All agents share one local memory."
+sidebarTitle: "Overview"
+icon: "plug"
+keywords: ["ai coding agent memory", "mcp memory server", "slowave integrations", "persistent memory for coding agents", "shared memory across ai agents"]
+---
+
+Slowave connects to the coding agents you already use. Every agent you connect reads and writes the same local memory.
+
+One command sets up every supported agent it finds:
+
+```bash
+pipx install slowave
+slowave setup --dry-run
+slowave setup
+```
+
+To set up a single agent, add `--client` with its name. Choose an agent below for its guide.
+
+## Supported agents
+
+<CardGroup cols={2}>
+  <Card title="Claude Code" icon="terminal" href="/integrations/claude-code">
+    <img src="/images/clients/claude.svg" alt="Claude Code logo" width="28" />
+
+    Persistent local memory for project decisions, constraints and procedures.
+  </Card>
+  <Card title="Copilot CLI" icon="github" href="/integrations/copilot-cli">
+    <img src="/images/clients/copilot.svg" alt="GitHub Copilot logo" width="28" />
+
+    Memory you can inspect across local GitHub Copilot CLI sessions.
+  </Card>
+  <Card title="Codex" icon="code" href="/integrations/codex">
+    <img src="/images/clients/openai.svg" alt="OpenAI logo" width="28" />
+
+    One local memory across the Codex CLI, desktop app and IDE extension.
+  </Card>
+  <Card title="Cursor" icon="mouse-pointer-2" href="/integrations/cursor">
+    <img src="/images/clients/cursor.svg" alt="Cursor logo" width="28" />
+
+    Project decisions and constraints that carry across sessions.
+  </Card>
+  <Card title="OpenCode" icon="square-terminal" href="/integrations/opencode">
+    <img src="/images/clients/opencode.png" alt="OpenCode logo" width="28" />
+
+    Shared, inspectable memory for future coding sessions.
+  </Card>
+  <Card title="Windsurf" icon="wind" href="/integrations/windsurf">
+    <img src="/images/clients/windsurf.svg" alt="Windsurf logo" width="28" />
+
+    Local memory for Windsurf Cascade, also listed as Devin Desktop.
+  </Card>
+  <Card title="Cline" icon="bot" href="/integrations/cline">
+    <img src="/images/clients/cline.svg" alt="Cline logo" width="28" />
+
+    Decisions, constraints and reusable methods across coding sessions.
+  </Card>
+  <Card title="Claude Desktop" icon="monitor" href="/integrations/claude-desktop">
+    <img src="/images/clients/claude.svg" alt="Claude logo" width="28" />
+
+    Local memory for Claude Desktop conversations.
+  </Card>
+</CardGroup>
+
+<Warning>
+  Copilot CLI is partly validated. It covers the local standalone `copilot` command only. Checks so far were on macOS with Copilot CLI 1.0.95. Full model-driven validation and native Windows and Linux qualification are pending.
+</Warning>
+
+## Setup effort at a glance
+
+| Agent | Platforms | Setup effort |
+| --- | --- | --- |
+| Claude Code | macOS, Linux, Windows | Automatic |
+| Copilot CLI | Checked on macOS; Windows and Linux pending | Partly validated |
+| Codex | macOS, Linux, Windows | Automatic |
+| Cursor | macOS, Linux, Windows | One manual paste |
+| OpenCode | macOS, Linux, Windows | Automatic |
+| Windsurf | macOS, Linux, Windows | Automatic |
+| Cline | macOS, Linux, Windows | Automatic |
+| Claude Desktop | macOS, Linux, Windows | One manual paste |
+
+Automatic means setup writes both the connection and the instructions. Cursor and Claude Desktop need you to paste the instructions that setup prints.
+
+## How all agents share one memory
+
+Slowave runs one small background service on your machine. Each agent connects to it through MCP, so they all use the same memory.
+
+Something you teach Claude Code can help Codex or Cursor later. Memory stays on your machine, and you can browse it with `slowave dashboard`.
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart" horizontal>
+    Install Slowave and see your first memory.
+  </Card>
+  <Card title="Troubleshooting" icon="life-buoy" href="/troubleshooting" horizontal>
+    Fix common setup problems.
+  </Card>
+</CardGroup>

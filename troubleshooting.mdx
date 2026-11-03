@@ -1,0 +1,120 @@
+---
+title: "Troubleshooting"
+description: "Fix common Slowave problems: agents that don't remember, a dashboard that won't open, missing agents, stopped services, and slow first runs."
+sidebarTitle: "Troubleshooting"
+icon: "life-buoy"
+keywords: ["troubleshooting", "doctor", "not working", "dashboard", "service", "windows", "linux", "macos"]
+---
+
+## Run `slowave doctor` first
+
+Most problems show up in these two commands.
+
+```bash
+slowave doctor
+slowave status --services
+```
+
+`doctor` checks your setup, database and agent connections. `status --services` shows whether Slowave's background services are running.
+
+## Connection problems
+
+<AccordionGroup>
+  <Accordion title="My agent doesn't remember anything">
+    Your agent may not be connected, or it may still have an old session open.
+    1. Run `slowave doctor` and look for your agent.
+    2. Run `slowave setup` to reconnect.
+    3. Restart your agent.
+
+    Memory also builds slowly. A brand-new install starts empty.
+  </Accordion>
+  <Accordion title="Setup didn't find my agent">
+    Setup skips agents it can't detect.
+    1. Open your agent once so it creates its settings folder.
+    2. Run `slowave setup --client <name>`, for example `claude-code`.
+
+    Cursor and Claude Desktop also need a manual step. Setup prints it.
+  </Accordion>
+  <Accordion title="The dashboard won't open">
+    The dashboard runs in your terminal while it's open.
+    1. Run `slowave dashboard` and use the address it prints.
+    2. If another copy is open, close it with Ctrl+C and try again.
+    3. For a blank page, run `slowave doctor`.
+  </Accordion>
+</AccordionGroup>
+
+## Services and updates
+
+<AccordionGroup>
+  <Accordion title="Slowave stopped after a restart or update">
+    The background services may be stopped.
+    1. Run `slowave start`.
+    2. If that fails, run `slowave setup` to register them again.
+    3. Restart your agent.
+
+    Slowave can take up to two minutes to start after an update.
+  </Accordion>
+  <Accordion title="I still see the old version after upgrading">
+    Old processes may still be running.
+    1. Run `slowave setup`.
+    2. Run `slowave restart`.
+    3. Close and reopen your agents.
+  </Accordion>
+  <Accordion title="slowave: command not found">
+    Your terminal can't find the program.
+    1. Run `pipx ensurepath`.
+    2. Open a new terminal.
+
+    Don't install a second copy to fix this.
+  </Accordion>
+  <Accordion title="It's slow on first use">
+    Setup downloads small search models once. Keep an internet connection until setup finishes. If it stopped early, run `slowave setup` again to resume. Your memory text stays on your computer.
+  </Accordion>
+</AccordionGroup>
+
+## Problems on your system
+
+<AccordionGroup>
+  <Accordion title="macOS">
+    Services run in your logged-in desktop session. Run `slowave status --services`, then `slowave start`. Logs are in the `logs_dir` folder that `status --services` prints.
+  </Accordion>
+  <Accordion title="Linux">
+    Slowave uses your user's systemd. Check it with `systemctl --user status slowave-daemon.service`. Don't use `sudo`. In containers or WSL without systemd, run services by hand.
+
+    ```bash
+    journalctl --user -u slowave-daemon --since today
+    ```
+  </Accordion>
+  <Accordion title="Windows">
+    Slowave uses Task Scheduler tasks that start with `Slowave`. Open Task Scheduler and check their last result. Company policy can block task creation. If so, ask your admin.
+  </Accordion>
+</AccordionGroup>
+
+## Data problems
+
+<AccordionGroup>
+  <Accordion title="Database is locked, or something looks corrupted">
+    1. Run `slowave stop`.
+    2. Run `slowave doctor`.
+    3. If the database is damaged, [restore a backup](/backup-and-restore).
+
+    Don't delete database files by hand.
+  </Accordion>
+  <Accordion title="A daily backup fails">
+    Run `slowave backup` and read the error. Check that you have free disk space.
+  </Accordion>
+</AccordionGroup>
+
+## Get help
+
+Open an issue at [github.com/slowave-ai/slowave/issues](https://github.com/slowave-ai/slowave/issues). Include:
+
+- The output of `slowave doctor`
+- Your operating system and agent
+- What you expected and what happened
+
+<Warning>
+  Check the output for private paths or project names before you post it.
+</Warning>
+
+More answers are in the [FAQ](/faq-and-troubleshooting).

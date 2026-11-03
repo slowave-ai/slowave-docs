@@ -1,0 +1,84 @@
+---
+title: "Persistent memory for Cline with Slowave"
+description: "Give Cline a local memory that carries across coding sessions. Slowave configures the CLI and VS Code extension and adds its rules for you."
+sidebarTitle: "Cline"
+icon: "bot"
+keywords: ["cline memory", "cline mcp memory server", "cline persistent memory", "cline vs code memory", "slowave cline"]
+---
+
+<img src="/images/clients/cline.svg" alt="Cline logo" width="40" />
+
+Slowave lets Cline carry decisions, constraints and reusable methods across coding sessions.
+
+## What you get
+
+- Setup adds the Slowave server to Cline's MCP settings file.
+- Setup adds Slowave's instructions to `~/.cline/rules/slowave.md`.
+- Setup covers both the Cline CLI and the VS Code extension when it finds them.
+- No manual paste is needed.
+
+## Set up
+
+<Steps>
+  <Step title="Install Slowave">
+    ```bash
+    pipx install slowave
+    ```
+  </Step>
+  <Step title="Preview the changes">
+    ```bash
+    slowave setup --client cline --dry-run
+    ```
+
+    The preview shows the exact settings path for your Cline surface.
+  </Step>
+  <Step title="Run setup">
+    ```bash
+    slowave setup --client cline
+    ```
+  </Step>
+  <Step title="Restart or reload Cline">
+    In VS Code, reload the window.
+  </Step>
+</Steps>
+
+## Check that it works
+
+Start a coding task in Cline. The `slowave_*` tools should appear. Then run:
+
+```bash
+slowave doctor
+```
+
+## Good to know
+
+- Cline's CLI and VS Code extension keep MCP settings in different places. Setup detects and configures the paths it finds.
+- The CLI path is `~/.cline/data/settings/cline_mcp_settings.json`. The VS Code path sits under the extension's `globalStorage` folder.
+- Setup detects Cline when `~/.cline/` exists or the VS Code extension folder is present.
+- Slowave runs on macOS, Linux and Windows.
+- Recalled context is sent to your model provider through Cline.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="The tools don't appear">
+    Check the settings path shown by `slowave setup --dry-run`. Restart or reload Cline, then run `slowave doctor`.
+  </Accordion>
+  <Accordion title="Doctor says configured, but there are no tools">
+    The old `~/.cline/mcp.json` file isn't read by current Cline. Use the settings path from the dry run instead.
+  </Accordion>
+  <Accordion title="The tools appear but memory isn't used">
+    Check that `~/.cline/rules/slowave.md` exists and has the Slowave block. If not, run `slowave setup --client cline` again.
+  </Accordion>
+</AccordionGroup>
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart" horizontal>
+    Install Slowave and see your first memory.
+  </Card>
+  <Card title="All integrations" icon="plug" href="/integrations/overview" horizontal>
+    Compare every supported agent.
+  </Card>
+</CardGroup>
+
+Back to [all Slowave integrations](/integrations/overview).

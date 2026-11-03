@@ -1,0 +1,95 @@
+---
+title: "Persistent memory for Claude Desktop with Slowave"
+description: "Give Claude Desktop a local memory that carries across conversations. Slowave connects over MCP; you paste one block into Custom Instructions."
+sidebarTitle: "Claude Desktop"
+icon: "monitor"
+keywords: ["claude desktop memory", "claude desktop mcp memory server", "claude desktop persistent memory", "claude desktop custom instructions", "slowave claude desktop"]
+---
+
+<img src="/images/clients/claude.svg" alt="Claude logo" width="40" />
+
+Slowave gives Claude Desktop access to the same local memory as your other agents. Setup needs one manual paste.
+
+## What you get
+
+- Setup adds the Slowave server to Claude Desktop's config file.
+- Claude Desktop starts Slowave over stdio. This differs from the other agents.
+- You paste Slowave's instructions into Custom Instructions yourself.
+- Memory stays on your machine.
+
+## Set up
+
+<Steps>
+  <Step title="Install Slowave">
+    ```bash
+    pipx install slowave
+    ```
+  </Step>
+  <Step title="Preview and run setup">
+    ```bash
+    slowave setup --client claude-desktop --dry-run
+    slowave setup --client claude-desktop
+    ```
+
+    Setup prints Slowave's instruction block in your terminal.
+  </Step>
+  <Step title="Paste the instructions">
+    In Claude Desktop, open **Settings**, then **General**, then **Instructions for Claude**. Paste the block that setup printed.
+  </Step>
+  <Step title="Restart Claude Desktop">
+    Quit and reopen the app.
+  </Step>
+</Steps>
+
+<Note>
+  Custom Instructions apply before the first turn. Skills may load later, so they can't replace this step. Claude Desktop stores the field on Anthropic's side, so setup can't fill it in.
+</Note>
+
+## Check that it works
+
+Start a new conversation. The `slowave_*` tools should appear. Then run:
+
+```bash
+slowave doctor
+```
+
+## Good to know
+
+- Setup detects Claude Desktop through its application support folder. On macOS that is `~/Library/Application Support/Claude/`.
+- The config file is `claude_desktop_config.json` in that folder. Windows uses `%APPDATA%\Claude\`. Linux uses `~/.config/Claude/`.
+- Slowave stores memory locally. When recalled, that context goes to Claude under Anthropic's data handling.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="The tools don't appear">
+    Check the config path shown by `slowave setup --dry-run`. Check that the JSON is valid, then restart Claude Desktop.
+  </Accordion>
+  <Accordion title="Memory only starts on turn two">
+    The instructions are probably missing from Custom Instructions. Paste the block there instead of using a Skill.
+  </Accordion>
+  <Accordion title="Setup didn't connect the server">
+    Add this to the config file, then restart. Find the path with `which slowave-mcp` on macOS or Linux:
+
+    ```json
+    {
+      "mcpServers": {
+        "slowave": {
+          "command": "/path/to/slowave-mcp"
+        }
+      }
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart" horizontal>
+    Install Slowave and see your first memory.
+  </Card>
+  <Card title="All integrations" icon="plug" href="/integrations/overview" horizontal>
+    Compare every supported agent.
+  </Card>
+</CardGroup>
+
+Back to [all Slowave integrations](/integrations/overview).

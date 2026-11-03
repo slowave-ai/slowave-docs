@@ -1,0 +1,79 @@
+---
+title: "Persistent memory for Windsurf with Slowave"
+description: "Give Windsurf Cascade a local memory that carries across sessions. Slowave connects over MCP and adds its rules to your global rules."
+sidebarTitle: "Windsurf"
+icon: "wind"
+keywords: ["windsurf memory", "windsurf mcp memory server", "windsurf cascade persistent memory", "devin desktop memory", "slowave windsurf"]
+---
+
+<img src="/images/clients/windsurf.svg" alt="Windsurf logo" width="40" />
+
+Slowave helps Windsurf Cascade reuse project decisions and constraints across sessions. Windsurf is also listed as Devin Desktop. The setup is the same.
+
+## What you get
+
+- Setup adds the Slowave server to `~/.codeium/windsurf/mcp_config.json`.
+- Setup adds Slowave's instructions to `~/.codeium/windsurf/memories/global_rules.md`.
+- Global rules apply to every Cascade conversation.
+- No manual paste is needed.
+
+## Set up
+
+<Steps>
+  <Step title="Install Slowave">
+    ```bash
+    pipx install slowave
+    ```
+  </Step>
+  <Step title="Preview the changes">
+    ```bash
+    slowave setup --client windsurf --dry-run
+    ```
+  </Step>
+  <Step title="Run setup">
+    ```bash
+    slowave setup --client windsurf
+    ```
+  </Step>
+  <Step title="Restart Windsurf">
+    Restart or reload Windsurf.
+  </Step>
+</Steps>
+
+## Check that it works
+
+Open a Cascade conversation. The `slowave_*` tools should appear. Then run:
+
+```bash
+slowave doctor
+```
+
+Run `slowave dashboard` to see recorded sessions in your browser.
+
+## Good to know
+
+- Setup detects Windsurf when `~/.codeium/windsurf/` exists.
+- Slowave runs on macOS, Linux and Windows.
+- Memory stays in your local database. Recalled context goes to the connected model under Windsurf's data handling.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="The tools don't appear">
+    Run `slowave status --services`, restart Windsurf and run setup again.
+  </Accordion>
+  <Accordion title="The tools appear but memory isn't used">
+    Check that `global_rules.md` contains the Slowave block. If not, run `slowave setup --client windsurf` again.
+  </Accordion>
+</AccordionGroup>
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart" horizontal>
+    Install Slowave and see your first memory.
+  </Card>
+  <Card title="All integrations" icon="plug" href="/integrations/overview" horizontal>
+    Compare every supported agent.
+  </Card>
+</CardGroup>
+
+Back to [all Slowave integrations](/integrations/overview).

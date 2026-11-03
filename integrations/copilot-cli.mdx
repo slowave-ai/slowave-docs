@@ -1,0 +1,90 @@
+---
+title: "Persistent memory for GitHub Copilot CLI with Slowave"
+description: "Give the GitHub Copilot CLI a local memory that carries across sessions. Slowave connects over MCP and adds personal instructions for you."
+sidebarTitle: "Copilot CLI"
+icon: "github"
+keywords: ["copilot cli memory", "github copilot cli mcp memory", "copilot cli persistent memory", "copilot cli remember between sessions", "slowave copilot"]
+---
+
+<img src="/images/clients/copilot.svg" alt="GitHub Copilot logo" width="40" />
+
+Slowave gives the local GitHub Copilot CLI a memory you can inspect. Project decisions and procedures carry across sessions.
+
+<Warning>
+  This integration is partly validated. Setup and instruction discovery were checked with Copilot CLI 1.0.95 on macOS. Full model-driven validation and native Windows and Linux qualification are still pending.
+</Warning>
+
+## What you get
+
+- Slowave's memory tools appear in Copilot CLI through MCP.
+- Setup writes the server to `~/.copilot/mcp-config.json`.
+- Setup adds Slowave's instructions to your personal file, `~/.copilot/copilot-instructions.md`. They apply across repositories.
+- Setup keeps your other MCP servers and your own text in those files.
+
+## Set up
+
+<Steps>
+  <Step title="Install and sign in to Copilot CLI">
+    Follow GitHub's guide to install the standalone `copilot` command. Use `copilot`, not the older `gh copilot` extension. Slowave doesn't install Copilot or sign you in.
+  </Step>
+  <Step title="Install Slowave">
+    Use the same account and terminal environment as Copilot.
+
+    ```bash
+    pipx install slowave
+    ```
+  </Step>
+  <Step title="Preview and run setup">
+    ```bash
+    slowave setup --client copilot --dry-run
+    slowave setup --client copilot
+    ```
+
+    Plain `slowave setup` also finds Copilot when `copilot` is on your PATH.
+  </Step>
+  <Step title="Restart Copilot CLI">
+    Exit any open session, then run `copilot` again.
+  </Step>
+</Steps>
+
+## Check that it works
+
+Start `copilot` in your repository. Then:
+
+1. Run `/mcp` and confirm `slowave` is connected with its tools.
+2. Run `/instructions` and confirm your personal Slowave instructions are loaded.
+3. Run `slowave doctor` in a terminal.
+
+A healthy background service alone doesn't prove which instructions your session picked up. Use `/instructions` to check.
+
+## Good to know
+
+- Only the local standalone Copilot CLI is supported. Copilot IDE extensions, the desktop app, the cloud agent and hosted jobs are out of scope.
+- Copilot needs its own account and plan. Managed accounts may need an administrator to enable the CLI and MCP.
+- If you set `COPILOT_HOME`, use the same value for setup and for Copilot.
+- Recalled context is passed to Copilot and may reach its model service.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="The tools don't appear">
+    Check that `copilot` is on your PATH. Run `slowave setup --client copilot` again, restart the CLI, then check `/mcp` and `/instructions`.
+  </Accordion>
+  <Accordion title="Slowave is turned off in Copilot">
+    Copilot can disable a server on its own. `slowave doctor` reports this. Run `copilot mcp enable slowave` to turn it back on.
+  </Accordion>
+  <Accordion title="Setup says the client isn't supported">
+    Run `slowave setup --help`. If `copilot` isn't listed, your Slowave version is too old. Upgrade it with `pipx upgrade slowave`, then run setup again.
+  </Accordion>
+</AccordionGroup>
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart" horizontal>
+    Install Slowave and see your first memory.
+  </Card>
+  <Card title="All integrations" icon="plug" href="/integrations/overview" horizontal>
+    Compare every supported agent.
+  </Card>
+</CardGroup>
+
+Back to [all Slowave integrations](/integrations/overview).

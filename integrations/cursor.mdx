@@ -1,0 +1,87 @@
+---
+title: "Persistent memory for Cursor with Slowave"
+description: "Give Cursor a local memory that carries across sessions. Slowave connects over MCP; you paste one block into Rules for AI."
+sidebarTitle: "Cursor"
+icon: "mouse-pointer-2"
+keywords: ["cursor memory", "cursor mcp memory server", "cursor persistent memory", "cursor rules for ai memory", "slowave cursor"]
+---
+
+<img src="/images/clients/cursor.svg" alt="Cursor logo" width="40" />
+
+Slowave lets Cursor reuse project decisions and constraints across sessions. Setup needs one manual paste.
+
+## What you get
+
+- Setup adds the Slowave server to `~/.cursor/mcp.json`. Cursor then shows the memory tools.
+- You paste Slowave's instructions into Cursor yourself. They tell the agent when to use those tools.
+- Memory stays on your machine.
+
+## Set up
+
+<Steps>
+  <Step title="Install Slowave">
+    ```bash
+    pipx install slowave
+    ```
+  </Step>
+  <Step title="Preview and run setup">
+    ```bash
+    slowave setup --dry-run
+    slowave setup --client cursor
+    ```
+
+    Setup prints Slowave's instruction block in your terminal.
+  </Step>
+  <Step title="Paste the instructions">
+    In Cursor, open **Settings** then **Rules for AI**. Paste the block that setup printed.
+
+    You can also add the block to a `.cursorrules` file in your project.
+  </Step>
+  <Step title="Restart Cursor">
+    Restart or reload Cursor.
+  </Step>
+</Steps>
+
+<Note>
+  Cursor shows the tools but doesn't tell the agent when to call them. The pasted rules do that.
+</Note>
+
+## Check that it works
+
+Start a conversation with a model that supports tool use. The `slowave_*` tools should appear. Run this in a terminal:
+
+```bash
+slowave doctor
+```
+
+## Good to know
+
+- Setup detects Cursor when `~/.cursor/` exists.
+- Slowave runs on macOS, Linux and Windows.
+- Use a model that supports tool use.
+- Recalled context goes to your model provider through Cursor.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="The tools don't appear">
+    Run `slowave status --services` and restart Cursor.
+  </Accordion>
+  <Accordion title="The tools appear but memory isn't used">
+    The rules paste is probably missing. Add the Slowave block to **Rules for AI** or `.cursorrules`.
+  </Accordion>
+  <Accordion title="I lost the instruction block">
+    Run `slowave setup --client cursor` again. Setup prints the current block.
+  </Accordion>
+</AccordionGroup>
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart" horizontal>
+    Install Slowave and see your first memory.
+  </Card>
+  <Card title="All integrations" icon="plug" href="/integrations/overview" horizontal>
+    Compare every supported agent.
+  </Card>
+</CardGroup>
+
+Back to [all Slowave integrations](/integrations/overview).

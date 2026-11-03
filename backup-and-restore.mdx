@@ -1,0 +1,114 @@
+---
+title: "Back up and restore your memory"
+description: "Slowave backs up your memory every day. Learn where backups live, how to make one yourself, how to restore it, and how to move to a new computer."
+sidebarTitle: "Backup and restore"
+icon: "database-backup"
+keywords: ["backup", "restore", "migrate", "move computer", "database"]
+---
+
+Slowave keeps all your memory in one local database. A backup is a compressed copy of that database.
+
+<Note>
+  Setup turns on a daily backup for you. Slowave keeps the last 7 copies.
+</Note>
+
+## Where backups live
+
+Backups sit in a `backups` folder inside Slowave's data folder.
+
+| System | Data folder |
+| --- | --- |
+| macOS | `~/Library/Application Support/slowave` |
+| Linux | `~/.local/share/slowave` |
+| Windows | `%LOCALAPPDATA%\slowave` |
+
+Each file is named like `slowave-20260101_093000.db.gz`. Run `slowave doctor` to see your exact folder.
+
+## Make a backup now
+
+```bash
+slowave backup
+```
+
+Slowave prints where it saved the file. You can run this while your agent is working.
+
+To keep more than 7 copies, add a number.
+
+```bash
+slowave backup --keep 14
+```
+
+## Restore a backup
+
+<Warning>
+  Restoring replaces your current memory. Anything saved after the backup is lost.
+</Warning>
+
+<Steps>
+  <Step title="Close your agents">
+    Quit any coding agent that uses Slowave.
+  </Step>
+  <Step title="Make a safety copy">
+    Back up your current state first, so you can undo the restore.
+
+    ```bash
+    slowave backup
+    ```
+  </Step>
+  <Step title="Restore">
+    Use the path of the backup you want. Slowave pauses its services and swaps in the copy.
+
+    ```bash
+    slowave restore /path/to/slowave-20260101_093000.db.gz
+    ```
+  </Step>
+  <Step title="Start Slowave again">
+    ```bash
+    slowave start
+    ```
+  </Step>
+  <Step title="Check that it worked">
+    ```bash
+    slowave doctor
+    ```
+
+    <Check>
+      Open `slowave dashboard` to see your memories again.
+    </Check>
+  </Step>
+</Steps>
+
+<Tip>
+  After a restore from an older version, the first start can take a few minutes while Slowave prepares your memory.
+</Tip>
+
+## Move to another computer
+
+<Steps>
+  <Step title="Back up on the old computer">
+    Run `slowave backup` and copy the new `.db.gz` file to the new computer.
+  </Step>
+  <Step title="Install and set up on the new one">
+    Follow the [quickstart](/quickstart) to run `pipx install slowave` and `slowave setup`.
+  </Step>
+  <Step title="Restore your file">
+    Run `slowave restore` with the path to your copied file, then `slowave start`.
+  </Step>
+</Steps>
+
+## Moving from an older install
+
+Very old versions kept data in `~/.slowave`. Preview the move, then run it.
+
+```bash
+slowave migrate-data --dry-run
+slowave migrate-data
+```
+
+Slowave keeps the old folder, so you can roll back.
+
+<Warning>
+  Your database and backups are plain text and not encrypted. Keep them on an encrypted disk, and don't share or upload them. See [local and private](/local-and-private).
+</Warning>
+
+Stuck? See [troubleshooting](/troubleshooting).

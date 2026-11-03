@@ -1,0 +1,96 @@
+---
+title: "Uninstall and remove Slowave"
+description: "Disconnect Slowave from your agents and keep your memory, or remove everything. Learn what uninstall and purge each do, and how to reinstall later."
+sidebarTitle: "Uninstall"
+icon: "trash-2"
+keywords: ["uninstall", "purge", "remove", "delete memory", "reinstall"]
+---
+
+Slowave has two removal commands. One keeps your memory. The other deletes it.
+
+<Tip>
+  Run `slowave backup` first. Both commands support `--dry-run`, which shows what would happen without changing anything.
+</Tip>
+
+<CardGroup cols={2}>
+  <Card title="Remove connections, keep memory" icon="unplug">
+    Run `slowave uninstall`.
+
+    - Disconnects your agents
+    - Stops background services and daily backups
+    - Keeps your memory and backups
+  </Card>
+  <Card title="Remove everything" icon="trash-2">
+    Run `slowave purge`.
+
+    - Does everything `uninstall` does
+    - Deletes your memory database
+    - Deletes Slowave's setup backup files
+    - Keeps your daily database backups
+  </Card>
+</CardGroup>
+
+Neither command removes the Slowave program itself. You remove that in the last step.
+
+## Remove connections and keep memory
+
+<Steps>
+  <Step title="Preview">
+    ```bash
+    slowave uninstall --dry-run
+    ```
+  </Step>
+  <Step title="Uninstall">
+    ```bash
+    slowave uninstall
+    ```
+  </Step>
+</Steps>
+
+## Remove everything
+
+<Warning>
+  `slowave purge` cannot be undone. It asks you to confirm before it deletes anything.
+</Warning>
+
+<Steps>
+  <Step title="Preview">
+    ```bash
+    slowave purge --dry-run
+    ```
+  </Step>
+  <Step title="Purge">
+    ```bash
+    slowave purge
+    ```
+  </Step>
+  <Step title="Delete old backups (optional)">
+    Purge leaves the `backups` folder so you can still recover. Delete it yourself if you no longer want those copies. See [backup and restore](/backup-and-restore) for the location.
+  </Step>
+</Steps>
+
+## Finish up
+
+<Steps>
+  <Step title="Clean up Cursor and Claude Desktop">
+    If you use either one, you pasted Slowave's instructions into its settings by hand. Delete that block by hand too.
+  </Step>
+  <Step title="Remove the program">
+    Use the tool you installed with.
+
+    ```bash
+    pipx uninstall slowave
+    ```
+  </Step>
+</Steps>
+
+## Reinstall later
+
+Install again and run setup. See the [quickstart](/quickstart).
+
+```bash
+pipx install slowave
+slowave setup
+```
+
+If you kept your memory, your agents find it again. If you purged, restore a file from [backup and restore](/backup-and-restore).

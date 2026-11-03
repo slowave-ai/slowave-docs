@@ -1,0 +1,97 @@
+---
+title: "Persistent memory for OpenCode with Slowave"
+description: "Give OpenCode a local memory that carries across sessions. Slowave adds a remote MCP server and its own instructions file for you."
+sidebarTitle: "OpenCode"
+icon: "square-terminal"
+keywords: ["opencode memory", "opencode mcp memory server", "opencode persistent memory", "opencode instructions file", "slowave opencode"]
+---
+
+<img src="/images/clients/opencode.png" alt="OpenCode logo" width="40" />
+
+Slowave gives OpenCode shared, inspectable memory for project decisions, constraints and procedures.
+
+## What you get
+
+- Setup registers Slowave as a remote MCP server in `~/.config/opencode/opencode.json`.
+- Setup writes Slowave's instructions to its own file, `~/.config/opencode/slowave-instructions.md`.
+- Setup adds that file to OpenCode's `instructions` list. Your `AGENTS.md` stays untouched.
+- No manual paste is needed.
+
+## Set up
+
+<Steps>
+  <Step title="Install Slowave">
+    ```bash
+    pipx install slowave
+    ```
+  </Step>
+  <Step title="Preview the changes">
+    ```bash
+    slowave setup --client opencode --dry-run
+    ```
+  </Step>
+  <Step title="Run setup">
+    ```bash
+    slowave setup --client opencode
+    ```
+  </Step>
+  <Step title="Restart OpenCode">
+    Restart so it loads the connection and instructions.
+  </Step>
+</Steps>
+
+## Check that it works
+
+Start a conversation in OpenCode. The `slowave_*` tools should appear. Then run:
+
+```bash
+slowave doctor
+```
+
+Run `slowave stats` to see recorded sessions.
+
+## Good to know
+
+- Setup detects OpenCode when `~/.config/opencode/` exists.
+- OpenCode uses the `mcp` key, not `mcpServers`. Setup handles this.
+- OpenCode connects to the same background service as your other agents. It doesn't start a process per session.
+- Slowave runs on macOS, Linux and Windows.
+- Your prompts and recalled context follow your OpenCode model provider's data handling.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="The tools don't appear">
+    Check that `opencode.json` has an `mcp.slowave` entry. Run `slowave status --services` and restart OpenCode.
+  </Accordion>
+  <Accordion title="The tools appear but are never called">
+    Check that the path to `slowave-instructions.md` is in the `instructions` list. Run `slowave setup --client opencode` again if it's missing.
+  </Accordion>
+  <Accordion title="Setup didn't connect the server">
+    Add this to `~/.config/opencode/opencode.json`, then restart OpenCode:
+
+    ```json
+    {
+      "mcp": {
+        "slowave": {
+          "type": "remote",
+          "url": "http://127.0.0.1:8766/mcp",
+          "enabled": true
+        }
+      },
+      "instructions": ["/absolute/path/to/slowave-instructions.md"]
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart" horizontal>
+    Install Slowave and see your first memory.
+  </Card>
+  <Card title="All integrations" icon="plug" href="/integrations/overview" horizontal>
+    Compare every supported agent.
+  </Card>
+</CardGroup>
+
+Back to [all Slowave integrations](/integrations/overview).

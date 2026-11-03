@@ -1,0 +1,86 @@
+---
+title: "Persistent memory for Codex with Slowave"
+description: "Give OpenAI Codex one local memory across the CLI, the desktop app and the IDE extension. Set it up once with Slowave."
+sidebarTitle: "Codex"
+icon: "code"
+keywords: ["codex memory", "openai codex mcp memory", "codex cli persistent memory", "codex agents.md memory", "slowave codex"]
+---
+
+<img src="/images/clients/openai.svg" alt="OpenAI logo" width="40" />
+
+Slowave gives Codex a local memory. One setup covers the Codex CLI, the desktop app and the IDE extension.
+
+## What you get
+
+- Slowave's memory tools appear in Codex through MCP.
+- Setup adds the server to `~/.codex/config.toml`.
+- Setup adds Slowave's instructions to `~/.codex/AGENTS.md`.
+- All three Codex surfaces share these files. Memories follow your work between them.
+
+## Set up
+
+<Steps>
+  <Step title="Install Slowave">
+    ```bash
+    pipx install slowave
+    ```
+  </Step>
+  <Step title="Preview the changes">
+    ```bash
+    slowave setup --dry-run
+    ```
+  </Step>
+  <Step title="Run setup">
+    ```bash
+    slowave setup --client codex
+    ```
+
+    There is no separate Codex desktop target. This one command is enough.
+  </Step>
+  <Step title="Restart Codex">
+    Restart each Codex surface you use.
+  </Step>
+</Steps>
+
+## Check that it works
+
+Start a coding task in Codex. The `slowave_*` tools should appear and the instructions should be read.
+
+Then run this in a terminal:
+
+```bash
+slowave doctor
+```
+
+Run `slowave dashboard` to see recorded sessions in your browser.
+
+## Good to know
+
+- Setup detects Codex when `~/.codex/` exists. If you set `$CODEX_HOME`, Slowave uses that folder instead.
+- Slowave runs on macOS, Linux and Windows.
+- Recalled context is sent to the model like any other prompt text.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Codex ignores the Slowave instructions">
+    If you have `~/.codex/AGENTS.override.md`, Codex reads only that file at global scope. It ignores `AGENTS.md`. `slowave doctor` warns you about this. Copy the Slowave block from `AGENTS.md` into your override file.
+  </Accordion>
+  <Accordion title="The tools don't appear">
+    Run `slowave status --services` and restart Codex. Older Codex versions can ignore remote MCP servers unless a compatibility setting is on. Setup doesn't write that setting. Check your Codex version first.
+  </Accordion>
+  <Accordion title="Sessions stay empty">
+    Check that the `slowave_*` tools are present and the Slowave block is in the file Codex reads.
+  </Accordion>
+</AccordionGroup>
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart" horizontal>
+    Install Slowave and see your first memory.
+  </Card>
+  <Card title="All integrations" icon="plug" href="/integrations/overview" horizontal>
+    Compare every supported agent.
+  </Card>
+</CardGroup>
+
+Back to [all Slowave integrations](/integrations/overview).

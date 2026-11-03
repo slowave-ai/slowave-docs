@@ -1,0 +1,99 @@
+---
+title: "Persistent memory for Claude Code with Slowave"
+description: "Give Claude Code a local, persistent memory with Slowave. One command connects the MCP server and adds the instructions Claude Code needs."
+sidebarTitle: "Claude Code"
+icon: "terminal"
+keywords: ["claude code memory", "claude code mcp memory server", "claude code persistent memory", "claude code remember between sessions", "slowave claude code"]
+---
+
+<img src="/images/clients/claude.svg" alt="Claude Code logo" width="40" />
+
+Slowave gives Claude Code a memory that carries across sessions. Decisions, constraints and procedures stay on your machine and come back when they matter.
+
+## What you get
+
+- Slowave's memory tools appear in Claude Code through MCP.
+- Setup adds the Slowave server to Claude Code's user-level MCP list in `~/.claude.json`.
+- Setup adds Slowave's instructions to `~/.claude/CLAUDE.md`. They tell Claude Code when to recall, save and report on memory.
+- No manual paste is needed.
+
+## Set up
+
+<Steps>
+  <Step title="Install Slowave">
+    ```bash
+    pipx install slowave
+    ```
+  </Step>
+  <Step title="Preview the changes">
+    ```bash
+    slowave setup --dry-run
+    ```
+  </Step>
+  <Step title="Run setup">
+    To configure only Claude Code, run:
+
+    ```bash
+    slowave setup --client claude-code
+    ```
+
+    Or run `slowave setup` to connect every agent it finds.
+  </Step>
+  <Step title="Restart Claude Code">
+    Restart so it loads the server and instructions.
+  </Step>
+</Steps>
+
+## Check that it works
+
+Open Claude Code and start a coding task. The `slowave_*` tools should appear in its tool list.
+
+From a terminal, run:
+
+```bash
+slowave doctor
+```
+
+It shows which agents it detected and whether the background service is healthy. Run `slowave stats` to see recorded sessions, or `slowave dashboard` to browse them in your browser.
+
+## Good to know
+
+- Setup detects Claude Code when the `~/.claude/` folder exists.
+- Slowave runs on macOS, Linux and Windows.
+- Slowave keeps memory on your machine. Recalled context is still sent to the model like any other prompt text.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="The Slowave tools don't appear">
+    Run `slowave status --services` to check the background service. Then restart Claude Code.
+  </Accordion>
+  <Accordion title="The tools appear but memory isn't used">
+    Run `slowave setup --client claude-code` again. This refreshes the instructions in `~/.claude/CLAUDE.md`.
+  </Accordion>
+  <Accordion title="Setup didn't connect the server">
+    Add the server to `~/.claude.json` yourself, then restart Claude Code:
+
+    ```json
+    {
+      "mcpServers": {
+        "slowave": {
+          "type": "http",
+          "url": "http://127.0.0.1:8766/mcp"
+        }
+      }
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart" horizontal>
+    Install Slowave and see your first memory.
+  </Card>
+  <Card title="All integrations" icon="plug" href="/integrations/overview" horizontal>
+    Compare every supported agent.
+  </Card>
+</CardGroup>
+
+Back to [all Slowave integrations](/integrations/overview).
