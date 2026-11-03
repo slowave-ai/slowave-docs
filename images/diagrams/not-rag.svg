@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 380" role="img" aria-labelledby="t d">
+  <title id="t">A storage and retrieval system compared with Slowave</title>
+  <desc id="d">A typical storage and retrieval setup stores text, fetches the closest matches and hands them to a language model. It does not learn whether the results helped. Slowave adds a feedback loop: the agent writes memories, receives relevant ones, reports what helped, and memory strengthens, fades or is replaced in the background.</desc>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8ca098"/>
+    </marker>
+  </defs>
+  <rect width="960" height="380" rx="20" fill="#0f1115"/>
+  <g font-family="Manrope, Inter, Arial, sans-serif" text-anchor="middle">
+    <text x="240" y="46" font-size="18" font-weight="700" fill="#8ca098">Store and fetch</text>
+    <text x="720" y="46" font-size="18" font-weight="700" fill="#41c76c">Slowave</text>
+    <line x1="480" y1="28" x2="480" y2="350" stroke="#2c313b"/>
+
+    <g font-size="13">
+      <rect x="40" y="80" width="130" height="64" rx="12" fill="#171a21" stroke="#2c313b"/>
+      <text x="105" y="108" fill="#edf4ef" font-weight="600">Stored text</text><text x="105" y="127" fill="#8ca098">notes, chunks</text>
+      <rect x="310" y="80" width="130" height="64" rx="12" fill="#171a21" stroke="#2c313b"/>
+      <text x="375" y="108" fill="#edf4ef" font-weight="600">Closest matches</text><text x="375" y="127" fill="#8ca098">fetched per query</text>
+      <rect x="175" y="200" width="130" height="64" rx="12" fill="#171a21" stroke="#2c313b"/>
+      <text x="240" y="228" fill="#edf4ef" font-weight="600">Language model</text><text x="240" y="247" fill="#8ca098">reads and answers</text>
+    </g>
+    <g stroke="#8ca098" stroke-width="1.5" marker-end="url(#a)" fill="none">
+      <line x1="172" y1="112" x2="308" y2="112"/>
+      <path d="M375 146 V170 H260 V198"/>
+    </g>
+    <text x="240" y="310" font-size="13" fill="#8ca098">One direction. Memory stays as it was stored.</text>
+    <text x="240" y="332" font-size="13" fill="#8ca098">It never learns whether a result helped.</text>
+
+    <g font-size="13">
+      <rect x="520" y="80" width="150" height="64" rx="12" fill="#171a21" stroke="#2c313b"/>
+      <text x="595" y="108" fill="#edf4ef" font-weight="600">Your agent</text><text x="595" y="127" fill="#8ca098">writes and uses</text>
+      <rect x="770" y="80" width="150" height="64" rx="12" fill="#171a21" stroke="#41c76c" stroke-width="1.5"/>
+      <text x="845" y="108" fill="#edf4ef" font-weight="600">Living memory</text><text x="845" y="127" fill="#8ca098">on your machine</text>
+      <rect x="645" y="200" width="150" height="64" rx="12" fill="#171a21" stroke="#41c76c"/>
+      <text x="720" y="228" fill="#edf4ef" font-weight="600">Background upkeep</text><text x="720" y="247" fill="#8ca098">no LLM needed</text>
+    </g>
+    <g stroke="#8ca098" stroke-width="1.5" marker-end="url(#a)" fill="none">
+      <line x1="672" y1="100" x2="768" y2="100"/>
+      <line x1="768" y1="126" x2="672" y2="126"/>
+      <path d="M845 146 V232 H797"/>
+    </g>
+    <text x="720" y="88" font-size="11" fill="#a0e3b5">remember, feedback</text>
+    <text x="720" y="144" font-size="11" fill="#a0e3b5">relevant memory</text>
+    <text x="720" y="310" font-size="13" fill="#a0e3b5">A loop. Memory strengthens, fades or is replaced</text>
+    <text x="720" y="332" font-size="13" fill="#a0e3b5">based on what your agent actually used.</text>
+  </g>
+</svg>

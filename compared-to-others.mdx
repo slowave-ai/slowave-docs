@@ -1,19 +1,52 @@
 ---
 title: "Compared to other options"
-description: "How Slowave differs from rules files and hosted memory services, and what its early benchmark results do and do not show."
+description: "Slowave is a living memory, not a search index with a model on top. See how it differs from RAG, rules files and hosted memory services."
 icon: "scale"
 ---
 
-There are three common ways to give an agent context. Each fits a different need.
+## Slowave is not a search index with a model on top
 
-| | Rules files (like `CLAUDE.md`) | Hosted memory services | Slowave |
-| --- | --- | --- | --- |
-| **Who writes memory** | You | The service | Your agent, with your review |
-| **Where it lives** | Your repo | A cloud service | Your computer |
-| **Shared between tools** | Per tool | Usually | Yes |
-| **Gets better with use** | No | Varies | Yes, from agent feedback |
-| **Needs an account or key** | No | Usually | No |
-| **Best for** | Stable team conventions | Apps with many end users | Your own coding workflow |
+Many memory tools work like a library. They store text, fetch the closest matches for a question, and hand them to a language model. This approach, often called RAG, is excellent for searching documents and knowledge bases.
+
+Slowave does a different job. It is a **living memory** that changes as your agent works.
+
+<Frame caption="A one-way store-and-fetch pipeline versus a memory that learns from use.">
+  <img src="/images/diagrams/not-rag.svg" alt="A typical storage and retrieval setup stores text, fetches the closest matches and hands them to a language model, with no learning. Slowave is a loop: the agent writes memories, receives relevant ones, reports what helped, and background upkeep strengthens, fades or replaces memories without an LLM." />
+</Frame>
+
+<CardGroup cols={2}>
+  <Card title="It learns from use" icon="trending-up">
+    Your agent reports which memories helped. Helpful ones come back more often. Unhelpful ones fade.
+  </Card>
+  <Card title="It keeps itself current" icon="refresh-cw">
+    A newer decision replaces an older one. A plain store would return both and leave your agent to guess.
+  </Card>
+  <Card title="It captures how, not only what" icon="list-checks" href="/procedures">
+    Besides facts, it saves methods that worked, as [procedures](/procedures).
+  </Card>
+  <Card title="Its upkeep needs no model" icon="cpu">
+    Tidying, ranking and recall run locally with no LLM calls. No separate model sits behind your memory.
+  </Card>
+</CardGroup>
+
+Your agent's own model still does the reasoning. Slowave keeps memory and reasoning separate: Slowave decides what is worth remembering and recalling, and your agent decides what to do with it.
+
+<Note>
+  Slowave and document search work well together. Use search for large reference material. Use Slowave for the decisions, rules and lessons that build up as you work.
+</Note>
+
+## Compared to other ways of giving an agent context
+
+| | Rules files (like `CLAUDE.md`) | Search over stored text (RAG) | Hosted memory services | Slowave |
+| --- | --- | --- | --- | --- |
+| **Who writes memory** | You | You index your content | The service | Your agent, with your review |
+| **Where it lives** | Your repo | Wherever you host it | A cloud service | Your computer |
+| **Shared between tools** | Per tool | Depends on setup | Usually | Yes |
+| **Gets better with use** | No | Typically no | Varies | Yes, from agent feedback |
+| **Replaces outdated information** | By hand | By re-indexing | Varies | Yes |
+| **Saves reusable methods** | No | No | Rarely | Yes, as procedures |
+| **Needs an account or key** | No | Often | Usually | No |
+| **Best for** | Stable team conventions | Searching documents | Apps with many end users | Your own coding workflow |
 
 <Tip>
   They work well together. Keep stable team rules in a rules file. Let Slowave handle the decisions and lessons that build up as you work.
