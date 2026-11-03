@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 330" role="img" aria-labelledby="t d">
+  <title id="t">How a procedure is learned and reused</title>
+  <desc id="d">A finished task is saved as a procedure with ordered steps. On a similar later task, the procedure is offered to the agent. The agent rates it, and helpful procedures are offered more often.</desc>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8ca098"/>
+    </marker>
+  </defs>
+  <rect width="960" height="330" rx="20" fill="#0f1115"/>
+  <g font-family="Manrope, Inter, Arial, sans-serif" text-anchor="middle">
+    <text x="480" y="44" font-size="20" font-weight="600" fill="#edf4ef">Good work becomes a reusable method</text>
+
+    <rect x="30" y="80" width="200" height="150" rx="14" fill="#171a21" stroke="#2c313b"/>
+    <text x="130" y="112" font-size="13" font-weight="600" fill="#41c76c" letter-spacing="1">TASK 1</text>
+    <text x="130" y="142" font-size="16" font-weight="600" fill="#edf4ef">Add an endpoint</text>
+    <text x="130" y="170" font-size="13" fill="#8ca098">The agent finishes the work</text>
+    <text x="130" y="188" font-size="13" fill="#8ca098">and saves how it did it</text>
+
+    <rect x="290" y="80" width="200" height="150" rx="14" fill="#171a21" stroke="#41c76c" stroke-width="1.5"/>
+    <text x="390" y="112" font-size="13" font-weight="600" fill="#41c76c" letter-spacing="1">PROCEDURE</text>
+    <text x="390" y="140" font-size="13" fill="#edf4ef">1  Define the route</text>
+    <text x="390" y="162" font-size="13" fill="#edf4ef">2  Validate input</text>
+    <text x="390" y="184" font-size="13" fill="#edf4ef">3  Write tests</text>
+    <text x="390" y="206" font-size="13" fill="#edf4ef">4  Update the API docs</text>
+
+    <rect x="550" y="80" width="200" height="150" rx="14" fill="#171a21" stroke="#2c313b"/>
+    <text x="650" y="112" font-size="13" font-weight="600" fill="#41c76c" letter-spacing="1">TASK 2</text>
+    <text x="650" y="142" font-size="16" font-weight="600" fill="#edf4ef">Add another endpoint</text>
+    <text x="650" y="170" font-size="13" fill="#8ca098">Slowave offers the method</text>
+    <text x="650" y="188" font-size="13" fill="#8ca098">as a head start</text>
+
+    <rect x="790" y="80" width="140" height="150" rx="14" fill="#171a21" stroke="#2c313b"/>
+    <text x="860" y="112" font-size="13" font-weight="600" fill="#41c76c" letter-spacing="1">FEEDBACK</text>
+    <text x="860" y="146" font-size="15" font-weight="600" fill="#edf4ef">Did it help?</text>
+    <text x="860" y="174" font-size="13" fill="#8ca098">Helpful methods</text>
+    <text x="860" y="192" font-size="13" fill="#8ca098">are offered more</text>
+
+    <g stroke="#8ca098" stroke-width="1.5" marker-end="url(#a)">
+      <line x1="232" y1="155" x2="288" y2="155"/>
+      <line x1="492" y1="155" x2="548" y2="155" stroke-dasharray="5 5"/>
+      <line x1="752" y1="155" x2="788" y2="155"/>
+    </g>
+    <text x="480" y="285" font-size="14" fill="#a0e3b5">Methods that fail are kept too, as warnings.</text>
+  </g>
+</svg>

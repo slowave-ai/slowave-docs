@@ -36,7 +36,7 @@
       },
       {
         "group": "Understand it",
-        "pages": ["memory-model", "local-and-private", "compared-to-others"]
+        "pages": ["memory-model", "procedures", "local-and-private", "compared-to-others"]
       },
       {
         "group": "Go further",
@@ -75,7 +75,7 @@
     { "source": "/setup/removal", "destination": "/faq-and-troubleshooting" },
     { "source": "/guides/memory-lifecycle", "destination": "/memory-model" },
     { "source": "/guides/scopes", "destination": "/memory-model" },
-    { "source": "/guides/procedures", "destination": "/memory-model" },
+    { "source": "/guides/procedures", "destination": "/procedures" },
     { "source": "/guides/dashboard", "destination": "/see-it-work" },
     { "source": "/operations/cli-reference", "destination": "/reference-lite" },
     { "source": "/operations/backup-restore", "destination": "/reference-lite" },

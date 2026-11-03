@@ -1,25 +1,25 @@
 ---
 title: "See it work"
-description: "Follow one rule across four sessions, then look inside the dashboard to see what your agent remembered and used."
+description: "Follow one coding rule and one reusable method across four sessions, then look inside the dashboard."
 icon: "eye"
 ---
 
-Here is a small story. A developer builds a pizza ordering API with a coding agent over several sessions. The screenshots below are example data from a local dashboard.
+Here is a short story. A developer builds a task-tracker API with a coding agent over four sessions. The screenshots below are example data from a local dashboard.
 
 ## The story
 
 <Steps>
   <Step title="Session 1: state a rule once">
-    The developer says: "Every order gets one free beer." The agent builds the first endpoint and saves the rule as a memory.
+    The developer says: "All API errors must return `{ code, message }`." The agent builds the first endpoint and saves the rule as a memory.
   </Step>
   <Step title="Session 2: it just knows">
-    In a brand new session, the agent adds a new endpoint. The free beer appears in the order, even though nobody mentioned it again.
+    In a brand new session, the agent adds a second endpoint. Its errors already use `{ code, message }`. Nobody repeated the rule.
   </Step>
-  <Step title="Session 3: a better way of working is reused">
-    The agent saved how it built the first endpoint. For the next endpoint, it finds that method and follows it.
+  <Step title="Session 3: a method is reused">
+    After the first endpoint, the agent saved how it worked: define the route, validate input, write tests, update the docs. For the next endpoint, Slowave offers that [procedure](/procedures) and the agent follows it.
   </Step>
   <Step title="Session 4: the rule changes">
-    The developer says: "Make it fries instead of beer." The old rule is retired. New orders get fries. Old saved orders keep their beer.
+    The team moves to a standard error format. The developer says so once. The old rule is retired, and new endpoints use the new format. Older endpoints are left alone.
   </Step>
 </Steps>
 
@@ -43,7 +43,7 @@ Run `slowave dashboard` to open it. Everything shown stays on your computer.
     </Frame>
   </Tab>
   <Tab title="Procedures">
-    <Frame caption="Ways of working that your agent can reuse.">
+    <Frame caption="Methods your agent learned and can reuse.">
       <img src="/images/dashboard/procedures.jpg" alt="Slowave dashboard procedures page listing reusable methods." />
     </Frame>
   </Tab>
