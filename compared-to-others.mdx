@@ -1,0 +1,49 @@
+---
+title: "Compared to other options"
+description: "How Slowave differs from rules files and hosted memory services, and what its early benchmark results do and do not show."
+icon: "scale"
+---
+
+There are three common ways to give an agent context. Each fits a different need.
+
+| | Rules files (like `CLAUDE.md`) | Hosted memory services | Slowave |
+| --- | --- | --- | --- |
+| **Who writes memory** | You | The service | Your agent, with your review |
+| **Where it lives** | Your repo | A cloud service | Your computer |
+| **Shared between tools** | Per tool | Usually | Yes |
+| **Gets better with use** | No | Varies | Yes, from agent feedback |
+| **Needs an account or key** | No | Usually | No |
+| **Best for** | Stable team conventions | Apps with many end users | Your own coding workflow |
+
+<Tip>
+  They work well together. Keep stable team rules in a rules file. Let Slowave handle the decisions and lessons that build up as you work.
+</Tip>
+
+## When Slowave is a good fit
+
+- You use one or more coding agents every day.
+- You are tired of repeating yourself.
+- You want your memory to stay on your own machine.
+
+## When it is not
+
+- You need memory for end users of a product you ship. Slowave is for developers using coding agents.
+- You need encrypted storage out of the box.
+
+## Early results
+
+We test how well Slowave finds the right information in long conversation histories.
+
+| Test | Result |
+| --- | --- |
+| LoCoMo, all questions | 71.84% |
+| LoCoMo, questions spanning several sessions | 87.04% |
+| LongMemEval, updated facts | 83.33% |
+
+<Warning>
+  These are early results. They measure whether the right evidence was found, not whether a coding agent finished its task better. We do not rank Slowave against other systems.
+</Warning>
+
+<Card title="Read the code" icon="github" href="https://github.com/slowave-ai/slowave" horizontal>
+  Slowave is open source under AGPL-3.0-or-later. A commercial license is available on request.
+</Card>

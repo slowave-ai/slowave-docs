@@ -1,98 +1,94 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "palm",
+  "theme": "maple",
   "name": "Slowave",
+  "description": "Living memory for your AI coding agents. Local, open source, no LLM API key.",
   "colors": {
-    "primary": "#6366F1",
-    "light": "#818CF8",
-    "dark": "#4338CA"
+    "primary": "#2F8F5B",
+    "light": "#41C76C",
+    "dark": "#2F6F4E"
+  },
+  "logo": {
+    "light": "/images/slowave-logo.jpeg",
+    "dark": "/images/slowave-logo.jpeg",
+    "href": "/"
   },
   "favicon": "/images/slowave-icon.jpeg",
+  "appearance": {
+    "default": "system",
+    "strict": false
+  },
+  "background": {
+    "decoration": "gradient"
+  },
+  "icons": {
+    "library": "lucide"
+  },
   "navigation": {
-    "pages": [
+    "groups": [
       {
-        "group": "Getting Started",
-        "pages": [
-          "index",
-          "quickstart"
-        ]
-      }
-    ],
-    "tabs": [
-      {
-        "tab": "Documentation",
-        "groups": [
-          {
-            "group": "Get Started",
-            "pages": [
-              "index",
-              "quickstart",
-              "how-it-works"
-            ]
-          },
-          {
-            "group": "Setup & Integrations",
-            "pages": [
-              "setup/installation",
-              "setup/client-integrations",
-              "setup/services",
-              "setup/removal"
-            ]
-          },
-          {
-            "group": "Using Slowave",
-            "pages": [
-              "guides/memory-lifecycle",
-              "guides/scopes",
-              "guides/procedures",
-              "guides/dashboard"
-            ]
-          },
-          {
-            "group": "Operations",
-            "pages": [
-              "operations/cli-reference",
-              "operations/backup-restore",
-              "operations/configuration",
-              "operations/troubleshooting"
-            ]
-          },
-          {
-            "group": "Reference",
-            "pages": [
-              "reference/architecture",
-              "reference/design",
-              "reference/benchmarks"
-            ]
-          }
-        ]
+        "group": "Start here",
+        "pages": ["index", "why-slowave", "how-it-works"]
       },
       {
-        "tab": "MCP Tools",
-        "groups": [
-          {
-            "group": "MCP Tools",
-            "pages": [
-              "mcp/overview",
-              "mcp/activate",
-              "mcp/remember",
-              "mcp/recall",
-              "mcp/feedback",
-              "mcp/commit"
-            ]
-          }
-        ]
+        "group": "Try it",
+        "pages": ["quickstart", "see-it-work", "connect-your-agent"]
+      },
+      {
+        "group": "Understand it",
+        "pages": ["memory-model", "local-and-private", "compared-to-others"]
+      },
+      {
+        "group": "Go further",
+        "pages": ["use-cases", "reference-lite", "faq-and-troubleshooting"]
       }
     ]
   },
   "navbar": {
+    "links": [
+      {
+        "label": "GitHub",
+        "href": "https://github.com/slowave-ai/slowave"
+      }
+    ],
     "primary": {
-      "type": "github",
-      "href": "https://github.com/slowave-ai/slowave"
+      "type": "button",
+      "label": "Quickstart",
+      "href": "/quickstart"
     }
   },
-  "logo": {
-    "light": "/images/slowave-logo.jpeg",
-    "dark": "/images/slowave-logo.jpeg"
-  }
+  "footer": {
+    "socials": {
+      "github": "https://github.com/slowave-ai/slowave"
+    }
+  },
+  "seo": {
+    "metatags": {
+      "og:site_name": "Slowave Docs",
+      "twitter:card": "summary_large_image"
+    }
+  },
+  "redirects": [
+    { "source": "/setup/installation", "destination": "/quickstart" },
+    { "source": "/setup/client-integrations", "destination": "/connect-your-agent" },
+    { "source": "/setup/services", "destination": "/reference-lite" },
+    { "source": "/setup/removal", "destination": "/faq-and-troubleshooting" },
+    { "source": "/guides/memory-lifecycle", "destination": "/memory-model" },
+    { "source": "/guides/scopes", "destination": "/memory-model" },
+    { "source": "/guides/procedures", "destination": "/memory-model" },
+    { "source": "/guides/dashboard", "destination": "/see-it-work" },
+    { "source": "/operations/cli-reference", "destination": "/reference-lite" },
+    { "source": "/operations/backup-restore", "destination": "/reference-lite" },
+    { "source": "/operations/configuration", "destination": "/reference-lite" },
+    { "source": "/operations/troubleshooting", "destination": "/faq-and-troubleshooting" },
+    { "source": "/reference/architecture", "destination": "/how-it-works" },
+    { "source": "/reference/design", "destination": "/how-it-works" },
+    { "source": "/reference/benchmarks", "destination": "/compared-to-others" },
+    { "source": "/mcp/overview", "destination": "/reference-lite" },
+    { "source": "/mcp/activate", "destination": "/reference-lite" },
+    { "source": "/mcp/remember", "destination": "/reference-lite" },
+    { "source": "/mcp/recall", "destination": "/reference-lite" },
+    { "source": "/mcp/feedback", "destination": "/reference-lite" },
+    { "source": "/mcp/commit", "destination": "/reference-lite" }
+  ]
 }

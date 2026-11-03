@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 330" role="img" aria-labelledby="t d">
+  <title id="t">The Slowave memory loop</title>
+  <desc id="d">Five steps in a loop: start the task and get relevant memory, work, save what is new, say what helped, finish the task. Feedback makes the next task better.</desc>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8ca098"/>
+    </marker>
+  </defs>
+  <rect width="960" height="330" rx="20" fill="#0f1115"/>
+  <text x="480" y="46" text-anchor="middle" font-family="Manrope, Inter, Arial, sans-serif" font-size="20" font-weight="600" fill="#edf4ef">Every task starts smarter than the last</text>
+
+  <g font-family="Manrope, Inter, Arial, sans-serif" text-anchor="middle">
+    <g>
+      <rect x="30" y="95" width="160" height="120" rx="14" fill="#171a21" stroke="#41c76c" stroke-width="1.5"/>
+      <circle cx="110" cy="125" r="14" fill="#41c76c"/><text x="110" y="131" font-size="15" font-weight="700" fill="#0f1115">1</text>
+      <text x="110" y="168" font-size="17" font-weight="600" fill="#edf4ef">Start</text>
+      <text x="110" y="192" font-size="13" fill="#8ca098">Your agent gets the</text>
+      <text x="110" y="209" font-size="13" fill="#8ca098">memory that matters</text>
+    </g>
+    <g>
+      <rect x="210" y="95" width="160" height="120" rx="14" fill="#171a21" stroke="#2c313b" stroke-width="1.5"/>
+      <circle cx="290" cy="125" r="14" fill="#41c76c"/><text x="290" y="131" font-size="15" font-weight="700" fill="#0f1115">2</text>
+      <text x="290" y="168" font-size="17" font-weight="600" fill="#edf4ef">Work</text>
+      <text x="290" y="192" font-size="13" fill="#8ca098">It codes with your past</text>
+      <text x="290" y="209" font-size="13" fill="#8ca098">decisions in mind</text>
+    </g>
+    <g>
+      <rect x="390" y="95" width="160" height="120" rx="14" fill="#171a21" stroke="#2c313b" stroke-width="1.5"/>
+      <circle cx="470" cy="125" r="14" fill="#41c76c"/><text x="470" y="131" font-size="15" font-weight="700" fill="#0f1115">3</text>
+      <text x="470" y="168" font-size="17" font-weight="600" fill="#edf4ef">Remember</text>
+      <text x="470" y="192" font-size="13" fill="#8ca098">New decisions and</text>
+      <text x="470" y="209" font-size="13" fill="#8ca098">lessons are saved</text>
+    </g>
+    <g>
+      <rect x="570" y="95" width="160" height="120" rx="14" fill="#171a21" stroke="#2c313b" stroke-width="1.5"/>
+      <circle cx="650" cy="125" r="14" fill="#41c76c"/><text x="650" y="131" font-size="15" font-weight="700" fill="#0f1115">4</text>
+      <text x="650" y="168" font-size="17" font-weight="600" fill="#edf4ef">Feedback</text>
+      <text x="650" y="192" font-size="13" fill="#8ca098">Your agent says what</text>
+      <text x="650" y="209" font-size="13" fill="#8ca098">helped and what didn't</text>
+    </g>
+    <g>
+      <rect x="750" y="95" width="180" height="120" rx="14" fill="#171a21" stroke="#2c313b" stroke-width="1.5"/>
+      <circle cx="840" cy="125" r="14" fill="#41c76c"/><text x="840" y="131" font-size="15" font-weight="700" fill="#0f1115">5</text>
+      <text x="840" y="168" font-size="17" font-weight="600" fill="#edf4ef">Finish</text>
+      <text x="840" y="192" font-size="13" fill="#8ca098">The task is closed and</text>
+      <text x="840" y="209" font-size="13" fill="#8ca098">memory improves</text>
+    </g>
+  </g>
+
+  <g stroke="#8ca098" stroke-width="1.5" fill="none" marker-end="url(#a)">
+    <line x1="192" y1="155" x2="208" y2="155"/>
+    <line x1="372" y1="155" x2="388" y2="155"/>
+    <line x1="552" y1="155" x2="568" y2="155"/>
+    <line x1="732" y1="155" x2="748" y2="155"/>
+    <path d="M840 217 V262 H110 V219" stroke-dasharray="5 5"/>
+  </g>
+  <text x="475" y="288" text-anchor="middle" font-family="Manrope, Inter, Arial, sans-serif" font-size="14" fill="#a0e3b5">Useful memories grow stronger. Outdated ones fade away.</text>
+</svg>

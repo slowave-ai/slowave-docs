@@ -1,0 +1,71 @@
+---
+title: "See it work"
+description: "Follow one rule across four sessions, then look inside the dashboard to see what your agent remembered and used."
+icon: "eye"
+---
+
+Here is a small story. A developer builds a pizza ordering API with a coding agent over several sessions. The screenshots below are example data from a local dashboard.
+
+## The story
+
+<Steps>
+  <Step title="Session 1: state a rule once">
+    The developer says: "Every order gets one free beer." The agent builds the first endpoint and saves the rule as a memory.
+  </Step>
+  <Step title="Session 2: it just knows">
+    In a brand new session, the agent adds a new endpoint. The free beer appears in the order, even though nobody mentioned it again.
+  </Step>
+  <Step title="Session 3: a better way of working is reused">
+    The agent saved how it built the first endpoint. For the next endpoint, it finds that method and follows it.
+  </Step>
+  <Step title="Session 4: the rule changes">
+    The developer says: "Make it fries instead of beer." The old rule is retired. New orders get fries. Old saved orders keep their beer.
+  </Step>
+</Steps>
+
+<Check>
+  This is the core promise: you say it once, and your agent keeps it until you change it.
+</Check>
+
+## Look inside with the dashboard
+
+Run `slowave dashboard` to open it. Everything shown stays on your computer.
+
+<Tabs>
+  <Tab title="Overview">
+    <Frame caption="How much your agent recalled, and how useful it was.">
+      <img src="/images/dashboard/overview.jpg" alt="Slowave dashboard overview showing memory activity and how often recalled memories were useful." />
+    </Frame>
+  </Tab>
+  <Tab title="Memories">
+    <Frame caption="Everything your agent has saved, in one searchable list.">
+      <img src="/images/dashboard/memories.jpg" alt="Slowave dashboard memories page listing saved decisions, rules and lessons." />
+    </Frame>
+  </Tab>
+  <Tab title="Procedures">
+    <Frame caption="Ways of working that your agent can reuse.">
+      <img src="/images/dashboard/procedures.jpg" alt="Slowave dashboard procedures page listing reusable methods." />
+    </Frame>
+  </Tab>
+  <Tab title="Retrieval">
+    <Frame caption="What was asked, what came back, and whether it helped.">
+      <img src="/images/dashboard/retrieval.jpg" alt="Slowave dashboard retrieval page showing a request, the memories returned and the agent's feedback." />
+    </Frame>
+  </Tab>
+  <Tab title="Graph">
+    <Frame caption="How your memories connect to each other.">
+      <img src="/images/dashboard/graph.jpg" alt="Slowave dashboard graph showing connections between memories." />
+    </Frame>
+  </Tab>
+  <Tab title="Activity">
+    <Frame caption="A timeline of what happened and when.">
+      <img src="/images/dashboard/activity.jpg" alt="Slowave dashboard activity timeline." />
+    </Frame>
+  </Tab>
+</Tabs>
+
+The dashboard also has a **System** view that shows whether the database, background worker and backups are healthy.
+
+<Card title="Next: connect your agent" icon="arrow-right" href="/connect-your-agent" horizontal>
+  Pick your tool and finish setup.
+</Card>

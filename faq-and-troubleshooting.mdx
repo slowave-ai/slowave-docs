@@ -1,0 +1,62 @@
+---
+title: "FAQ and troubleshooting"
+description: "Answers to common questions, and what to do when Slowave doesn't seem to work."
+icon: "circle-help"
+---
+
+## Common questions
+
+<AccordionGroup>
+  <Accordion title="Is Slowave free?">
+    Yes. It is open source under AGPL-3.0-or-later. A commercial license is available on request.
+  </Accordion>
+  <Accordion title="Do I need an API key?">
+    No. Slowave needs no LLM key. Your coding agent keeps using its own account.
+  </Accordion>
+  <Accordion title="Does my memory leave my computer?">
+    Slowave does not send memory to a hosted memory service. See [Local and private](/local-and-private) for the details.
+  </Accordion>
+  <Accordion title="Can I use it with several agents?">
+    Yes. Every connected agent shares one memory. See [Connect your agent](/connect-your-agent).
+  </Accordion>
+  <Accordion title="Is it ready for production use?">
+    Slowave is public beta software. Settings and storage may change between versions. Keep backups.
+  </Accordion>
+</AccordionGroup>
+
+## Something isn't working
+
+<Steps>
+  <Step title="Run the health check">
+    ```bash
+    slowave doctor
+    ```
+    It tells you what is wrong and often how to fix it.
+  </Step>
+  <Step title="Check the background services">
+    ```bash
+    slowave status --services
+    ```
+    If they are stopped, run `slowave start`.
+  </Step>
+  <Step title="Restart your agent">
+    Agents read their connections when they launch.
+  </Step>
+  <Step title="Still stuck?">
+    Run `slowave docs troubleshooting`, or [open an issue](https://github.com/slowave-ai/slowave/issues).
+  </Step>
+</Steps>
+
+## Backups and removal
+
+<AccordionGroup>
+  <Accordion title="How do I back up my memory?">
+    Slowave backs up daily on its own. Run `slowave backup` for an extra copy, and `slowave restore FILE.db.gz` to bring one back.
+  </Accordion>
+  <Accordion title="How do I remove Slowave but keep my memory?">
+    Run `slowave uninstall`.
+  </Accordion>
+  <Accordion title="How do I delete everything?">
+    Run `slowave purge`. This deletes your memory data and can't be undone.
+  </Accordion>
+</AccordionGroup>

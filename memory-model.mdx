@@ -1,0 +1,63 @@
+---
+title: "What Slowave remembers"
+description: "What gets saved, how memories stay organized by project, and how Slowave keeps the useful ones and lets old ones go."
+icon: "brain"
+---
+
+## What gets saved
+
+Slowave keeps things that will help in a future task. It does not keep a transcript of everything.
+
+<CardGroup cols={2}>
+  <Card title="Decisions" icon="git-branch">
+    "We chose Postgres over MySQL because of JSON support."
+  </Card>
+  <Card title="Rules and constraints" icon="ruler">
+    "Never call the billing service from tests."
+  </Card>
+  <Card title="Preferences" icon="sliders-horizontal">
+    "Use small commits with clear messages."
+  </Card>
+  <Card title="Lessons" icon="graduation-cap">
+    "The build fails if you skip the codegen step."
+  </Card>
+</CardGroup>
+
+Your agent also saves **procedures**. A procedure is a way of working that succeeded, such as the steps for adding a new endpoint. Slowave offers it again for similar tasks.
+
+## Memories are organized by project
+
+Each memory belongs to a **scope**, usually one project. When you work in a project, your agent sees that project's memories, not those from unrelated work.
+
+## Memories change over time
+
+<Steps>
+  <Step title="Helpful memories grow stronger">
+    When your agent reports that a memory helped, it is more likely to appear again.
+  </Step>
+  <Step title="Unused memories fade">
+    Memories that never help slowly drop down the list.
+  </Step>
+  <Step title="Outdated memories are replaced">
+    If your agent saves a newer decision that contradicts an older one, the old one is marked as replaced.
+  </Step>
+</Steps>
+
+<Tip>
+  You can see all of this in the [dashboard](/see-it-work). Nothing happens out of sight.
+</Tip>
+
+## What Slowave does not do
+
+<AccordionGroup>
+  <Accordion title="It does not read your whole codebase">
+    Your agent already does that. Slowave stores the reasons behind the code, not the code itself.
+  </Accordion>
+  <Accordion title="It does not guess">
+    Slowave saves what your agent chooses to save. Quality depends on your agent giving honest feedback.
+  </Accordion>
+</AccordionGroup>
+
+<Card title="Next: where your data lives" icon="arrow-right" href="/local-and-private" horizontal>
+  Everything stays on your computer.
+</Card>

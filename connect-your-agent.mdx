@@ -1,0 +1,76 @@
+---
+title: "Connect your agent"
+description: "Slowave works with Claude Code, Cursor, Codex, Windsurf, Cline, OpenCode, Claude Desktop and Copilot CLI. Here is what to do for each."
+icon: "plug"
+---
+
+`slowave setup` finds the agents installed on your computer and connects them. Most need nothing else.
+
+<Note>
+  All agents share one memory. A rule saved in one is available in the others.
+</Note>
+
+## Pick your agent
+
+<Tabs>
+  <Tab title="Claude Code">
+    <img src="/images/clients/claude.svg" alt="Claude logo" width="40" />
+
+    Fully automatic. Setup connects Claude Code and adds helpers so the memory loop runs on its own.
+  </Tab>
+  <Tab title="Cursor">
+    <img src="/images/clients/cursor.svg" alt="Cursor logo" width="40" />
+
+    Setup does most of the work. You paste one block of instructions into Cursor yourself. Setup prints it for you.
+  </Tab>
+  <Tab title="Codex">
+    <img src="/images/clients/openai.svg" alt="OpenAI logo" width="40" />
+
+    Fully automatic, including helpers for the memory loop.
+  </Tab>
+  <Tab title="Windsurf">
+    <img src="/images/clients/windsurf.svg" alt="Windsurf logo" width="40" />
+
+    Fully automatic. Windsurf is also known as Devin Desktop.
+  </Tab>
+  <Tab title="Cline">
+    <img src="/images/clients/cline.svg" alt="Cline logo" width="40" />
+
+    Fully automatic.
+  </Tab>
+  <Tab title="OpenCode">
+    <img src="/images/clients/opencode.png" alt="OpenCode logo" width="40" />
+
+    Fully automatic.
+  </Tab>
+  <Tab title="Claude Desktop">
+    <img src="/images/clients/claude.svg" alt="Claude logo" width="40" />
+
+    Setup does most of the work. You paste one block of instructions into Claude Desktop yourself. Setup prints it for you.
+  </Tab>
+  <Tab title="Copilot CLI">
+    <img src="/images/clients/copilot.svg" alt="GitHub Copilot logo" width="40" />
+
+    Supported for the command-line tool only. This integration is still being validated, so expect rough edges. Copilot in editors and the cloud is not supported yet.
+  </Tab>
+</Tabs>
+
+## Check that it works
+
+<Steps>
+  <Step title="Run the health check">
+    ```bash
+    slowave doctor
+    ```
+  </Step>
+  <Step title="Restart your agent">
+    Agents read their connections when they start.
+  </Step>
+  <Step title="Open the dashboard">
+    Run `slowave dashboard` and watch the **Activity** view while you work.
+  </Step>
+</Steps>
+
+<Warning>
+  If your agent is missing from the list above, it may not be supported yet. Ask on [GitHub](https://github.com/slowave-ai/slowave).
+</Warning>

@@ -1,0 +1,50 @@
+---
+title: "Quick reference"
+description: "The commands, tools and settings you need day to day. For anything deeper, see the GitHub repository."
+icon: "list"
+mode: "wide"
+---
+
+## Everyday commands
+
+| Command | What it does |
+| --- | --- |
+| `slowave setup --dry-run` | Shows what setup would change, without changing anything. |
+| `slowave setup` | Connects your agents and starts Slowave in the background. |
+| `slowave doctor` | Checks that everything is healthy. |
+| `slowave dashboard` | Opens the local dashboard. |
+| `slowave status --services` | Shows whether the background services are running. |
+| `slowave start`, `stop`, `restart` | Controls the background services. |
+| `slowave backup` | Saves a backup of your memory. |
+| `slowave restore FILE.db.gz` | Restores a backup. |
+| `slowave uninstall` | Removes the connections and keeps your memory. |
+| `slowave purge` | Removes everything, including your memory. |
+| `slowave docs` | Opens help for troubleshooting. |
+
+## The five tools your agent uses
+
+| Tool | Purpose |
+| --- | --- |
+| `slowave_activate` | Starts a task and returns the memories that matter. |
+| `slowave_remember` | Saves a decision, rule, preference or lesson. |
+| `slowave_recall` | Looks up more detail on a specific question. |
+| `slowave_feedback` | Reports which memories helped, which did not, and which are outdated. |
+| `slowave_commit` | Closes the task and can save a reusable method. |
+
+Your agent calls these for you. `slowave setup` gives each agent the instructions.
+
+## Settings
+
+| Setting | Meaning |
+| --- | --- |
+| `SLOWAVE_HOME` | Moves where Slowave keeps its data. |
+
+## Good to know
+
+- Slowave runs on macOS, Linux and Windows, and needs Python 3.11 or newer.
+- Backups run once a day on their own.
+- The dashboard opens on your own computer only.
+
+<Card title="Full details on GitHub" icon="github" href="https://github.com/slowave-ai/slowave" horizontal>
+  Install options, advanced commands and the changelog.
+</Card>
