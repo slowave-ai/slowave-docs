@@ -51,13 +51,13 @@
         "pages": [
           "integrations/overview",
           "integrations/claude-code",
+          "integrations/copilot-cli",
           "integrations/codex",
           "integrations/cursor",
+          "integrations/opencode",
           "integrations/windsurf",
           "integrations/cline",
-          "integrations/opencode",
-          "integrations/claude-desktop",
-          "integrations/copilot-cli"
+          "integrations/claude-desktop"
         ]
       },
       {
