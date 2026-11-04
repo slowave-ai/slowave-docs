@@ -27,7 +27,7 @@ slowave doctor
 slowave status --services
 ```
 
-`doctor` checks your setup, database and agent connections. `status --services` shows whether Slowave's background services are running.
+`doctor` checks your setup, memory file and agent connections. `status --services` shows whether Slowave's background services are running.
 
 ## Connection problems
 
@@ -108,9 +108,9 @@ slowave status --services
   <Accordion title="Database is locked, or something looks corrupted">
     1. Run `slowave stop`.
     2. Run `slowave doctor`.
-    3. If the database is damaged, [restore a backup](/backup-and-restore).
+    3. If your memory file is damaged, [restore a backup](/backup-and-restore).
 
-    Don't delete database files by hand.
+    Don't delete memory files by hand.
   </Accordion>
   <Accordion title="A daily backup fails">
     Run `slowave backup` and read the error. Check that you have free disk space.

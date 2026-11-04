@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "maple",
+  "theme": "palm",
   "name": "Slowave",
   "description": "Living memory for your AI coding agents. Local, open source, no LLM API key.",
   "colors": {
@@ -57,6 +57,7 @@
           "integrations/opencode",
           "integrations/windsurf",
           "integrations/cline",
+          "integrations/antigravity",
           "integrations/claude-desktop"
         ]
       },
@@ -79,16 +80,9 @@
     ]
   },
   "navbar": {
-    "links": [
-      {
-        "label": "GitHub",
-        "href": "https://github.com/slowave-ai/slowave"
-      }
-    ],
     "primary": {
-      "type": "button",
-      "label": "Quickstart",
-      "href": "/quickstart"
+      "type": "github",
+      "href": "https://github.com/slowave-ai/slowave"
     }
   },
   "footer": {

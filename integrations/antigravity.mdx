@@ -1,0 +1,79 @@
+---
+title: "Persistent memory for Antigravity with Slowave"
+description: "Give Antigravity a local memory that carries across sessions. Slowave adds its MCP server and lifecycle instructions to Antigravity's global config."
+sidebarTitle: "Antigravity"
+icon: "orbit"
+keywords: ["antigravity memory", "antigravity mcp memory server", "antigravity persistent memory", "agy memory", "slowave antigravity"]
+---
+
+<img src="/images/clients/antigravity.svg" alt="Antigravity logo" width="40" style={{background:"#fff",borderRadius:8,padding:4}} />
+
+Slowave helps Antigravity reuse project decisions, constraints and methods across sessions. It covers the Antigravity app, IDE and CLI.
+
+## What you get
+
+- Setup adds the Slowave server to `~/.gemini/config/mcp_config.json`.
+- Setup adds Slowave's instructions to `~/.gemini/config/AGENTS.md`.
+- Slowave connects to the local background service over HTTP.
+- No manual paste is needed.
+
+## Set up
+
+<Steps>
+  <Step title="Install Slowave">
+    ```bash
+    pipx install slowave
+    ```
+  </Step>
+  <Step title="Preview the changes">
+    ```bash
+    slowave setup --client antigravity --dry-run
+    ```
+  </Step>
+  <Step title="Run setup">
+    ```bash
+    slowave setup --client antigravity
+    ```
+  </Step>
+  <Step title="Restart Antigravity">
+    Restart Antigravity or reload its MCP servers.
+  </Step>
+</Steps>
+
+## Check that it works
+
+List the connected servers, then run the doctor:
+
+```bash
+agy mcp list
+slowave doctor
+```
+
+Ask Antigravity to remember a project fact. Open a new conversation in the same project and ask for it. Approve the Slowave tools when Antigravity asks.
+
+## Good to know
+
+- Setup detects Antigravity when `agy` or `antigravity` is on your PATH, or when `~/.gemini/antigravity/` exists.
+- Plain `slowave setup` also configures Antigravity.
+- Live checks so far used the Antigravity CLI on macOS. The app, IDE, Linux and Windows haven't been tested live.
+- Recalled context is sent to your model provider through Antigravity.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="The tools don't appear">
+    Run `slowave status --services`, restart Antigravity and run `slowave doctor`.
+  </Accordion>
+  <Accordion title="A headless run exits successfully but memory isn't used">
+    Antigravity can exit cleanly when a tool is denied. Grant permission to the Slowave tools for that run and check the tool results.
+  </Accordion>
+</AccordionGroup>
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart" horizontal>
+    Install Slowave and see your first memory.
+  </Card>
+  <Card title="All integrations" icon="plug" href="/integrations/overview" horizontal>
+    Compare every supported agent.
+  </Card>
+</CardGroup>

@@ -25,7 +25,7 @@ The site presents the product to AI engineers. It is not a technical manual. Exp
 
 ## Supported clients and their order
 
-Always list clients in this order: Claude Code, Copilot CLI, Codex, Cursor, OpenCode, Windsurf (Devin Desktop), Cline, Claude Desktop.
+Always list clients in this order: Claude Code, Copilot CLI, Codex, Cursor, OpenCode, Windsurf (Devin Desktop), Cline, Antigravity, Claude Desktop.
 
 ## Style preferences
 

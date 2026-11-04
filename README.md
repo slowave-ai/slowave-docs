@@ -1,6 +1,6 @@
 # Slowave docs
 
-Documentation for [Slowave](https://github.com/slowave-ai/slowave): local, persistent memory for AI coding agents (Claude Code, Copilot CLI, Codex, Cursor, OpenCode, Windsurf, Cline and Claude Desktop).
+Documentation for [Slowave](https://github.com/slowave-ai/slowave): local, persistent memory for AI coding agents (Claude Code, Copilot CLI, Codex, Cursor, OpenCode, Windsurf, Cline, Antigravity and Claude Desktop).
 
 The site is built with [Mintlify](https://mintlify.com). Pushes to `main` deploy automatically.
 
